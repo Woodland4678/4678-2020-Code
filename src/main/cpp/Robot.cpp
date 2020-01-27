@@ -87,6 +87,22 @@ void Robot::TeleopInit() {
 }
 
 void Robot::TeleopPeriodic() {
+	if(oi->getDriverGamepad()->GetRawButton(1)){
+		intakes->spinIntakes();
+	}
+	if(oi->getDriverGamepad()->GetRawButton(2)){
+		intakes->stopIntakes();
+	}
+	if(oi->getDriverGamepad()->GetRawButton(3)){
+		intakes->spitoutIntakes();
+	}
+
+	if(oi->getOperatorGamepad()->GetRawButton(1)){
+		intakes->spinMag();
+	}
+	if(oi->getOperatorGamepad()->GetRawButton(2)){
+		intakes->stopMag();
+	}
 	frc::Scheduler::GetInstance()->Run();
 }
 
