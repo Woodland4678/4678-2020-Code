@@ -68,7 +68,14 @@ void Robot::DisabledPeriodic() {
 }
 
 void Robot::AutonomousInit() {
-	autonomousCommand = chooser.GetSelected();
+	//autonomousCommand = chooser.GetSelected();
+	//autonomousCommand = new AutonomousCommand();
+	//autonomousCommand = new AutoModeOne();
+	if (true) {
+		autonomousCommand = new AutoModeOne();
+	} else {
+		autonomousCommand = new AutoModeTwo();
+	}
 	if (autonomousCommand != nullptr)
 		autonomousCommand->Start();
 }
