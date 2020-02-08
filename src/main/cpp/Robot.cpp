@@ -68,14 +68,7 @@ void Robot::DisabledPeriodic() {
 }
 
 void Robot::AutonomousInit() {
-	//autonomousCommand = chooser.GetSelected();
-	//autonomousCommand = new AutonomousCommand();
-	//autonomousCommand = new AutoModeOne();
-	if (true) {
-		autonomousCommand = new AutoModeOne();
-	} else {
-		autonomousCommand = new AutoModeTwo();
-	}
+	autonomousCommand = chooser.GetSelected();
 	if (autonomousCommand != nullptr)
 		autonomousCommand->Start();
 }
@@ -125,7 +118,19 @@ void Robot::TeleopPeriodic() {
 	}
 	frc::Scheduler::GetInstance()->Run();
 }
+// void Robot::determineAutoSwitches()  {
 
+
+// }
+// static int Robot::getAutoStartNum() {
+// 	return autoStartNum;
+// }
+// static int Robot::getAutoFinishNum() {
+// 	return autoFinishNum;
+// }
+// static int Robot::getAutoMode() {
+// 	return autoMode;
+// }
 #ifndef RUNNING_FRC_TESTS
 int main(int argc, char** argv) {
     return frc::StartRobot<Robot>();
