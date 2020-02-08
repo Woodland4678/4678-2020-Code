@@ -89,26 +89,39 @@ void Robot::TeleopInit() {
 	// teleop starts running. If you want the autonomous to
 	// continue until interrupted by another command, remove
 	// these lines or comment it out.
+	pathdone = false;
+	limeRead = false;
+	hor = 0;
+	dir = 0;
 	if (autonomousCommand != nullptr)
 		autonomousCommand->Cancel();
 }
 
 void Robot::TeleopPeriodic() {
-	if(oi->getDriverGamepad()->GetRawButton(1)){
-		intakes->spinIntakes();
+	if((oi->getDriverGamepad()->GetRawButton(1))&&(!pathdone)){
+		pathdone = drivetrain->testPath();
 	}
 	if(oi->getDriverGamepad()->GetRawButton(2)){
-		intakes->stopIntakes();
+		drivetrain->initPath();
+
+		pathdone = false;
+		limeRead = false;
 	}
 	if(oi->getDriverGamepad()->GetRawButton(3)){
-		intakes->spitoutIntakes();
+		drivetrain->setLimeLED(true);
+	}
+	if(oi->getDriverGamepad()->GetRawButton(4)){
+		drivetrain->setLimeLED(false);
 	}
 
 	if(oi->getOperatorGamepad()->GetRawButton(1)){
-		intakes->spinMag();
+		drivetrain->SetLimeFar(); //intakes->spinMag();
 	}
 	if(oi->getOperatorGamepad()->GetRawButton(2)){
-		intakes->stopMag();
+		drivetrain->SetLimeZoomed(); //intakes->stopMag();
+	}
+	if(oi->getOperatorGamepad()->GetRawButton(3)){
+		intakes->spitoutMag();
 	}
 	frc::Scheduler::GetInstance()->Run();
 }

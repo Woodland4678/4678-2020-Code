@@ -12,7 +12,7 @@ Children:
           default: '2'
           name: CAN ID
           validators: &id002 [CANID, DistinctValidator]
-          value: '1'
+          value: '13'
         Motor Type: !!robotbuilder.data.properties.ChoicesProperty
           choices: &id003 [Brushless, Brushed]
           default: Brushless
@@ -44,7 +44,7 @@ Children:
           default: '2'
           name: CAN ID
           validators: *id002
-          value: '3'
+          value: '4'
         Motor Type: !!robotbuilder.data.properties.ChoicesProperty
           choices: *id003
           default: Brushless
@@ -60,7 +60,7 @@ Children:
           default: '2'
           name: CAN ID
           validators: *id002
-          value: '4'
+          value: '5'
         Motor Type: !!robotbuilder.data.properties.ChoicesProperty
           choices: *id003
           default: Brushless
@@ -78,7 +78,7 @@ Children:
         validators: null
         value: []
       Default Command: !!robotbuilder.data.properties.TypeSelectionProperty {default: None,
-        name: Default Command, type: Command, validators: null, value: None}
+        name: Default Command, type: Command, validators: null, value: DriveRobot}
       Constants: !!robotbuilder.data.properties.ConstantsProperty
         default: []
         name: Constants
@@ -132,7 +132,7 @@ Children:
           default: '2'
           name: CAN ID
           validators: &id007 [CANID]
-          value: '5'
+          value: '14'
       Base: Talon SRX
       Name: shooterMotor1
     - Children: []
@@ -253,46 +253,6 @@ Children:
           value: '1'
       Base: Digital Input
       Name: indexer2
-    - Children: []
-      Properties:
-        Input Channel (Digital): !!robotbuilder.data.properties.ChoicesProperty
-          choices: *id008
-          default: '0'
-          name: Input Channel (Digital)
-          validators: *id009
-          value: '2'
-      Base: Digital Input
-      Name: indexer3
-    - Children: []
-      Properties:
-        Input Channel (Digital): !!robotbuilder.data.properties.ChoicesProperty
-          choices: *id008
-          default: '0'
-          name: Input Channel (Digital)
-          validators: *id009
-          value: '3'
-      Base: Digital Input
-      Name: indexer4
-    - Children: []
-      Properties:
-        Input Channel (Digital): !!robotbuilder.data.properties.ChoicesProperty
-          choices: *id008
-          default: '0'
-          name: Input Channel (Digital)
-          validators: *id009
-          value: '4'
-      Base: Digital Input
-      Name: indexer5
-    - Children: []
-      Properties:
-        Input Channel (Digital): !!robotbuilder.data.properties.ChoicesProperty
-          choices: *id008
-          default: '0'
-          name: Input Channel (Digital)
-          validators: *id009
-          value: '5'
-      Base: Digital Input
-      Name: indexer6
     Properties:
       Send to SmartDashboard: !!robotbuilder.data.properties.BooleanProperty {default: false,
         name: Send to SmartDashboard, validators: null, value: false}
@@ -404,6 +364,28 @@ Children:
         name: Button on SmartDashboard, validators: null, value: true}
     Base: Command
     Name: AutoModeTwo
+  - Children: []
+    Properties:
+      Autonomous Selection: !!robotbuilder.data.properties.BooleanProperty {default: false,
+        name: Autonomous Selection, validators: null, value: false}
+      Parameters: !!robotbuilder.data.properties.ParametersProperty
+        default: []
+        name: Parameters
+        validators: null
+        value: []
+      Run When Disabled: !!robotbuilder.data.properties.BooleanProperty {default: false,
+        name: Run When Disabled, validators: null, value: false}
+      Requires: !!robotbuilder.data.properties.TypeSelectionProperty {default: None,
+        name: Requires, type: Subsystem, validators: null, value: Drivetrain}
+      Parameter presets: !!robotbuilder.data.properties.ParameterSetProperty
+        default: &id012 []
+        name: Parameter presets
+        validators: null
+        value: *id012
+      Button on SmartDashboard: !!robotbuilder.data.properties.BooleanProperty {default: true,
+        name: Button on SmartDashboard, validators: null, value: false}
+    Base: Command
+    Name: DriveRobot
   Properties: {}
   Base: Commands
   Name: Commands
@@ -425,10 +407,10 @@ Properties:
     name: Export Subsystems, validators: null, value: true}
   Simulation World File: !!robotbuilder.data.properties.StringProperty {default: /usr/share/frcsim/worlds/GearsBotDemo.world,
     name: Simulation World File, validators: null, value: /usr/share/frcsim/worlds/GearsBotDemo.world}
-  Wiring file location: !!robotbuilder.data.properties.FileProperty {default: 'C:\Users\Dell1\',
+  Wiring file location: !!robotbuilder.data.properties.FileProperty {default: 'C:\Users\cybercavs\',
     extension: null, folder: true, name: Wiring file location, validators: null, value: 'C:\Users\cybercavs\'}
-  Export Directory: !!robotbuilder.data.properties.FileProperty {default: 'C:\Users\Dell1\FRCProjects',
-    extension: null, folder: true, name: Export Directory, validators: null, value: 'C:\Users\Dell1\FRCProjects'}
+  Export Directory: !!robotbuilder.data.properties.FileProperty {default: 'C:\Users\cybercavs\FRCProjects',
+    extension: null, folder: true, name: Export Directory, validators: null, value: 'C:\Users\cybercavs\FRCProjects'}
   Autonomous Command: !!robotbuilder.data.properties.TypeSelectionProperty {default: None,
     name: Autonomous Command, type: Command, validators: null, value: Autonomous Command}
 Base: Robot

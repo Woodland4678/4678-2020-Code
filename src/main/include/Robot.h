@@ -49,4 +49,9 @@ static std::shared_ptr<Intakes> intakes;
 	void AutonomousPeriodic() override;
 	void TeleopInit() override;
 	void TeleopPeriodic() override;
+
+	bool pathdone = false;
+	bool limeRead = false;
+	double hor;
+	int dir;
 };
