@@ -366,7 +366,7 @@ bool Drivetrain::testPath() {
 }
 
 //-------------------------------------------Auto Controls--------------------------------------------
-bool Drivetrain::AutoAim(){
+double Drivetrain::AutoAim(){
     double error = 0;
 	static double past = 0;
 	static double iValue = 0;
@@ -401,5 +401,5 @@ bool Drivetrain::AutoAim(){
 		setLeftPower(0);
 		return true;
 	}*/
-	return false;
+	return error;
 }

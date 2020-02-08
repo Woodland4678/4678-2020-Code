@@ -99,7 +99,7 @@ Drivetrain();
 	int tCnt = 0;
 
 	//Auto Controls
-	bool AutoAim();
+	double AutoAim();
 	double mAA_p = 0;
 	double mAA_d = 0;
 	double mAA_i = 0;
