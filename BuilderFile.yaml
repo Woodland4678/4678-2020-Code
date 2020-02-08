@@ -294,6 +294,16 @@ Children:
         value: '1'
     Base: Joystick
     Name: OperatorGamepad
+  - Children: []
+    Properties:
+      Number: !!robotbuilder.data.properties.ChoicesProperty
+        choices: *id010
+        default: 1
+        name: Number
+        validators: *id011
+        value: '2'
+    Base: Joystick
+    Name: AutoSwitch
   Properties: {}
   Base: OI
   Name: Operator Interface
@@ -378,10 +388,10 @@ Children:
       Requires: !!robotbuilder.data.properties.TypeSelectionProperty {default: None,
         name: Requires, type: Subsystem, validators: null, value: Drivetrain}
       Parameter presets: !!robotbuilder.data.properties.ParameterSetProperty
-        default: &id012 []
+        default: []
         name: Parameter presets
         validators: null
-        value: *id012
+        value: []
       Button on SmartDashboard: !!robotbuilder.data.properties.BooleanProperty {default: true,
         name: Button on SmartDashboard, validators: null, value: false}
     Base: Command
