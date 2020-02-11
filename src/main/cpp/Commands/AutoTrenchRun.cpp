@@ -37,23 +37,24 @@ void AutoTrenchRun::Initialize() {
         autoStep = autoAim;
     } else if (autoStartNum == 1) {
         startX = 0;
-        startY = 1;
+        startY = -1;
         autoStep = shoot;
     }
-    path1 = new PathFinder(0.02,4,4,1,0.545);
+    path1 = new PathFinder(0.02,3,4,1,0.545);
     path1->createNewPath();
     path1->addWayPoint(startX, startY, 0);
-    path1->addWayPoint(2.44, 0, 0);
-    path1->addWayPoint(6.16, 0, 0);
+    path1->addWayPoint(2.44, 0, 0); //2.44, 0, 0
+    path1->addWayPoint(4.16, 0, 0); //6.16, 0, 0
     path1->makePath();
 
     path2 = new PathFinder(0.02,4,4,1,0.545);
     path2->createNewPath();
-    path2->addWayPoint(6.16, 0, 0);
-    path2->addWayPoint(3.5,0,0);
-    path2->addWayPoint(finishX,finishY,0);
+    path2->addWayPoint(4.16, 0, 0); //6.16, 0, 0
+    path2->addWayPoint(3.5,0,0); //3.5,0,0
+    path2->addWayPoint(0,0,0); //finishX, finishY, 0
     path2->makePath();
 
+    cnt = 0;
 }
 
 // Called repeatedly when this Command is scheduled to run
@@ -88,7 +89,7 @@ void AutoTrenchRun::Execute() {
         case pause:
             cnt++;
             if (cnt > 50) {
-                autoStep = runSecondPath;
+                //autoStep = runSecondPath;
                 cnt = 0;
             }
             
