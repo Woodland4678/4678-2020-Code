@@ -21,6 +21,22 @@ private:
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 std::shared_ptr<frc::Joystick> autoSwitch;
 std::shared_ptr<frc::Joystick> operatorGamepad;
 std::shared_ptr<frc::JoystickButton> operator_Btn2_A;

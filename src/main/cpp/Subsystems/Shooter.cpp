@@ -37,10 +37,10 @@ shooterMotor3.reset(new WPI_TalonSRX(7));
 shooterMotor4.reset(new WPI_TalonSRX(8));
 
 
-hoodPosition.reset(new frc::Solenoid(0, 1));
+hoodPosition.reset(new frc::Solenoid(0, 2));
 AddChild("hoodPosition", hoodPosition);
 
-hoodMidPosition.reset(new frc::Solenoid(0, 2));
+hoodMidPosition.reset(new frc::Solenoid(0, 3));
 AddChild("hoodMidPosition", hoodMidPosition);
 
 
