@@ -84,3 +84,16 @@ void Shooter::Periodic() {
 void Shooter::SetShooterSpeed(double speed) {
     shooterMotor1->Set(ControlMode::Velocity,speed);
 }
+
+void Shooter::hoodPositionIn(){
+    hoodPosition->Set(true);
+}
+void Shooter::hoodPositionOut(){
+    hoodPosition->Set(false);
+}
+void Shooter::hoodMidPositionIn(){
+    hoodMidPosition->Set(true);
+}
+void Shooter::hoodMidPositionOut(){
+    hoodMidPosition->Set(false);
+}
