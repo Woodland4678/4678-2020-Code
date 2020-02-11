@@ -69,6 +69,23 @@ Children:
           value: Brushless
       Base: CAN SparkMAX
       Name: rightSlave
+    - Children: []
+      Properties:
+        Output Channel (Solenoid): !!robotbuilder.data.properties.ChoicesProperty
+          choices: &id006 ['0', '1', '2', '3', '4', '5', '6', '7']
+          default: '0'
+          name: Output Channel (Solenoid)
+          validators: &id007 [Solenoid]
+          value: '4'
+        Output PCM (Solenoid): !!robotbuilder.data.properties.ChoicesProperty
+          choices: &id008 ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
+            '11', '12', '13', '14', '15', '16', '17', '18', '19', '20']
+          default: '0'
+          name: Output PCM (Solenoid)
+          validators: &id009 [Solenoid]
+          value: '0'
+      Base: Solenoid
+      Name: shifter
     Properties:
       Send to SmartDashboard: !!robotbuilder.data.properties.BooleanProperty {default: false,
         name: Send to SmartDashboard, validators: null, value: false}
@@ -108,17 +125,16 @@ Children:
     - Children: []
       Properties:
         Output Channel (Solenoid): !!robotbuilder.data.properties.ChoicesProperty
-          choices: &id008 ['0', '1', '2', '3', '4', '5', '6', '7']
+          choices: *id006
           default: '0'
           name: Output Channel (Solenoid)
-          validators: &id009 [Solenoid]
+          validators: *id007
           value: '0'
         Output PCM (Solenoid): !!robotbuilder.data.properties.ChoicesProperty
-          choices: &id010 ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
-            '11', '12', '13', '14', '15', '16', '17', '18', '19', '20']
+          choices: *id008
           default: '0'
           name: Output PCM (Solenoid)
-          validators: &id011 [Solenoid]
+          validators: *id009
           value: '0'
       Base: Solenoid
       Name: wheelManipulator
@@ -143,74 +159,74 @@ Children:
     - Children: []
       Properties:
         CAN ID: !!robotbuilder.data.properties.ChoicesProperty
-          choices: &id006 ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
+          choices: &id010 ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
             '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22',
             '23', '24', '25', '26', '27', '28', '29', '30', '31']
           default: '2'
           name: CAN ID
-          validators: &id007 [CANID]
+          validators: &id011 [CANID]
           value: '14'
       Base: Talon SRX
       Name: shooterMotor1
     - Children: []
       Properties:
         CAN ID: !!robotbuilder.data.properties.ChoicesProperty
-          choices: *id006
+          choices: *id010
           default: '2'
           name: CAN ID
-          validators: *id007
+          validators: *id011
           value: '6'
       Base: Talon SRX
       Name: shooterMotor2
     - Children: []
       Properties:
         CAN ID: !!robotbuilder.data.properties.ChoicesProperty
-          choices: *id006
+          choices: *id010
           default: '2'
           name: CAN ID
-          validators: *id007
+          validators: *id011
           value: '7'
       Base: Talon SRX
       Name: shooterMotor3
     - Children: []
       Properties:
         CAN ID: !!robotbuilder.data.properties.ChoicesProperty
-          choices: *id006
+          choices: *id010
           default: '2'
           name: CAN ID
-          validators: *id007
+          validators: *id011
           value: '8'
       Base: Talon SRX
       Name: shooterMotor4
     - Children: []
       Properties:
         Output Channel (Solenoid): !!robotbuilder.data.properties.ChoicesProperty
-          choices: *id008
+          choices: *id006
           default: '0'
           name: Output Channel (Solenoid)
-          validators: *id009
+          validators: *id007
           value: '2'
         Output PCM (Solenoid): !!robotbuilder.data.properties.ChoicesProperty
-          choices: *id010
+          choices: *id008
           default: '0'
           name: Output PCM (Solenoid)
-          validators: *id011
+          validators: *id009
           value: '0'
       Base: Solenoid
       Name: hoodPosition
     - Children: []
       Properties:
         Output Channel (Solenoid): !!robotbuilder.data.properties.ChoicesProperty
-          choices: *id008
+          choices: *id006
           default: '0'
           name: Output Channel (Solenoid)
-          validators: *id009
+          validators: *id007
           value: '3'
         Output PCM (Solenoid): !!robotbuilder.data.properties.ChoicesProperty
-          choices: *id010
+          choices: *id008
           default: '0'
           name: Output PCM (Solenoid)
-          validators: *id011
+          validators: *id009
           value: '0'
       Base: Solenoid
       Name: hoodMidPosition
@@ -232,22 +248,6 @@ Children:
     Base: Subsystem
     Name: Shooter
   - Children:
-    - Children: []
-      Properties:
-        CAN ID: !!robotbuilder.data.properties.ChoicesProperty
-          choices: *id001
-          default: '2'
-          name: CAN ID
-          validators: *id002
-          value: '9'
-        Motor Type: !!robotbuilder.data.properties.ChoicesProperty
-          choices: *id003
-          default: Brushless
-          name: Motor Type
-          validators: *id004
-          value: Brushless
-      Base: CAN SparkMAX
-      Name: sideRoller
     - Children: []
       Properties:
         CAN ID: !!robotbuilder.data.properties.ChoicesProperty
@@ -305,19 +305,71 @@ Children:
     - Children: []
       Properties:
         Output Channel (Solenoid): !!robotbuilder.data.properties.ChoicesProperty
-          choices: *id008
+          choices: *id006
           default: '0'
           name: Output Channel (Solenoid)
-          validators: *id009
+          validators: *id007
           value: '1'
         Output PCM (Solenoid): !!robotbuilder.data.properties.ChoicesProperty
-          choices: *id010
+          choices: *id008
           default: '0'
           name: Output PCM (Solenoid)
-          validators: *id011
+          validators: *id009
           value: '0'
       Base: Solenoid
       Name: intakePneumatics
+    - Children: []
+      Properties:
+        CAN ID: !!robotbuilder.data.properties.ChoicesProperty
+          choices: *id001
+          default: '2'
+          name: CAN ID
+          validators: *id002
+          value: '9'
+        Motor Type: !!robotbuilder.data.properties.ChoicesProperty
+          choices: *id003
+          default: Brushless
+          name: Motor Type
+          validators: *id004
+          value: Brushless
+      Base: CAN SparkMAX
+      Name: leftRoller
+    - Children: []
+      Properties:
+        CAN ID: !!robotbuilder.data.properties.ChoicesProperty
+          choices: *id001
+          default: '2'
+          name: CAN ID
+          validators: *id002
+          value: '12'
+        Motor Type: !!robotbuilder.data.properties.ChoicesProperty
+          choices: *id003
+          default: Brushless
+          name: Motor Type
+          validators: *id004
+          value: Brushless
+      Base: CAN SparkMAX
+      Name: rightRoller
+    - Children: []
+      Properties:
+        Input Channel (Digital): !!robotbuilder.data.properties.ChoicesProperty
+          choices: *id012
+          default: '0'
+          name: Input Channel (Digital)
+          validators: *id013
+          value: '2'
+      Base: Digital Input
+      Name: leftIndexer
+    - Children: []
+      Properties:
+        Input Channel (Digital): !!robotbuilder.data.properties.ChoicesProperty
+          choices: *id012
+          default: '0'
+          name: Input Channel (Digital)
+          validators: *id013
+          value: '3'
+      Base: Digital Input
+      Name: rightIndexer
     Properties:
       Send to SmartDashboard: !!robotbuilder.data.properties.BooleanProperty {default: false,
         name: Send to SmartDashboard, validators: null, value: false}
@@ -1303,7 +1355,7 @@ Properties:
   Wiring file location: !!robotbuilder.data.properties.FileProperty {default: 'C:\Users\Dell1\',
     extension: null, folder: true, name: Wiring file location, validators: null, value: 'C:\Users\cybercavs\'}
   Export Directory: !!robotbuilder.data.properties.FileProperty {default: 'C:\Users\Dell1\FRCProjects',
-    extension: null, folder: true, name: Export Directory, validators: null, value: 'C:\Users\cybercavs\FRCProjects'}
+    extension: null, folder: true, name: Export Directory, validators: null, value: 'C:\Users\Dell1\FRCProjects'}
   Autonomous Command: !!robotbuilder.data.properties.TypeSelectionProperty {default: None,
     name: Autonomous Command, type: Command, validators: null, value: Autonomous Command}
 Base: Robot
