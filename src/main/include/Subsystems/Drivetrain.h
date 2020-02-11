@@ -70,6 +70,7 @@ Drivetrain();
 	bool ml_ValidTarget = false;
 	double ml_targetHorizontial;
 	double ml_targetVertical;
+	double ml_TargetDistance;
 
 	void setLimeLED(bool state);
 	void SetLimeFar();
