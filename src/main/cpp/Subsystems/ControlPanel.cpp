@@ -49,3 +49,10 @@ void ControlPanel::Periodic() {
 // Put methods for controlling this subsystem
 // here. Call these from Commands.
 
+void ControlPanel::deployWheelManipulator(){
+    wheelManipulator->Set(true);
+}
+
+void ControlPanel::retractWheelManipulator(){
+    wheelManipulator->Set(false);
+}
