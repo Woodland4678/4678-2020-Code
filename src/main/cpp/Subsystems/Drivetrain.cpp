@@ -135,6 +135,7 @@ void Drivetrain::Periodic() {
 // Put methods for controlling this subsystem
 // here. Call these from Commands.
 
+#pragma region Motor Low Level Control Functions
 //------------------------------------------Set Functions------------------------------------------
 void Drivetrain::setLeftRPM(double rpm){
     frc::SmartDashboard::PutNumber("Left Set Speed",rpm);
@@ -170,6 +171,9 @@ void Drivetrain::setRightPower(double pwr) {
 void Drivetrain::setLeftPower(double pwr) {
     leftMaster->Set(-pwr);
 }
+#pragma endregion
+
+#pragma region Motor Get Functions
 //------------------------------------------Get Functions------------------------------------------
 double Drivetrain::getLeftEncoder() {
    return leftMaster->GetEncoder().GetPosition();
@@ -197,7 +201,9 @@ double Drivetrain::getRightVelocity(){
     double rpm = rightMaster->GetEncoder().GetVelocity();
     return rpm / SpeedConvert;
 }
+#pragma endregion
 
+#pragma region Limelight
 //--------------------------------------------Limelight-----------------------------------------------
 void Drivetrain::setLimeLED(bool state){
     if(state == 0)
@@ -226,7 +232,9 @@ double Drivetrain::getLimeHorizontial(){
 double Drivetrain::getLimeVertical(){
     return ml_targetVertical;//Read in the periodic function
 }
+#pragma endregion
 
+#pragma region Main Control Functions
 //-----------------------------------------Advanced Controls------------------------------------------
 bool Drivetrain::turnAmount(double degrees, int direction, double vel, double acc){
     if((mt_tarDeg != degrees) || (mt_tarDir != direction) || (mt_vel != vel))
@@ -403,3 +411,4 @@ double Drivetrain::AutoAim(){
 	}*/
 	return error;
 }
+#pragma endregion

@@ -10,7 +10,7 @@
 #ifndef PATHFINDER_H
 #define PATHFINDER_H
 
-#include "frc/WPILib.h"
+//#include "frc/WPILib.h"
 
 #define MAX_WAYPOINTS   10  //We don't like using malloc and other dynamic memory, this is the max 
                             //array size for the number of waypoints you can have in a single path
