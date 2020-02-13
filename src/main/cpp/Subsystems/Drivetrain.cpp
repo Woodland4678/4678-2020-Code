@@ -24,14 +24,14 @@
 
 //RPM PID for NEO Motor
 const double V_leftP = 0.000130;
-const double V_leftI = (1.05e-6);
-const double V_leftD = 0;
-const double V_leftF = 0;
+const double V_leftI = 1.05e-6;
+const double V_leftD = 0.0;
+const double V_leftF = 0.0;
 
 const double V_rightP = 0.000130;
 const double V_rightI = 1.05e-6;
-const double V_rightD = 0;
-const double V_rightF = 0;
+const double V_rightD = 0.0;
+const double V_rightF = 0.0;
 
 //Position PID for NEO Motors
 const double P_leftP = 0.05;
@@ -97,11 +97,16 @@ AddChild("shifter", shifter);
     leftMaster->SetSmartCurrentLimit(CurrenLimit);
     rightMaster->SetSmartCurrentLimit(CurrenLimit);
 
-    m_Path = new PathFinder(0.02,4,4,1,0.545);
+    m_Path = new PathFinder(0.02,3,2,1,0.545);
 
     mAA_p = 0.19;
     mAA_i = 0.001;
 	mAA_d = 0;
+
+    frc::SmartDashboard::PutNumber("Left Set Speed",0);
+    frc::SmartDashboard::PutNumber("Right Set Speed",0);
+    frc::SmartDashboard::PutNumber("cnt",0);
+    frc::SmartDashboard::PutNumber("Element",0);
 }
 
 void Drivetrain::InitDefaultCommand() {
@@ -119,6 +124,14 @@ void Drivetrain::Periodic() {
     frc::SmartDashboard::PutNumber("Left Speed",getLeftRPM());
     frc::SmartDashboard::PutNumber("Right Speed",getRightRPM());
 
+    double SpeedErrorL = l_Set - getLeftRPM();
+    double SpeedErrorR = r_Set - getRightRPM();
+
+    frc::SmartDashboard::PutNumber("Left I Accum",leftMaster->GetPIDController().GetIAccum());
+    frc::SmartDashboard::PutNumber("Right I Accum",rightMaster->GetPIDController().GetIAccum());
+
+    frc::SmartDashboard::PutNumber("Left Error",SpeedErrorL);
+    frc::SmartDashboard::PutNumber("Right Error",SpeedErrorR);
 
     ml_ValidTarget = limelight->GetNumber("tv",0.0);
     if(ml_ValidTarget){
@@ -141,17 +154,19 @@ void Drivetrain::Periodic() {
 #pragma region Motor Low Level Control Functions
 //------------------------------------------Set Functions------------------------------------------
 void Drivetrain::setLeftRPM(double rpm){
-    frc::SmartDashboard::PutNumber("Left Set Speed",rpm);
+    frc::SmartDashboard::PutNumber("Left Set Speed",-rpm);
+    l_Set = -rpm;
     leftMaster->GetPIDController().SetReference(-rpm, rev::ControlType::kVelocity,0);
 }
 
 void Drivetrain::setRightRPM(double rpm){
     frc::SmartDashboard::PutNumber("Right Set Speed",rpm);
+    r_Set = rpm;
     rightMaster->GetPIDController().SetReference(rpm, rev::ControlType::kVelocity,0);
 }
 
 void Drivetrain::setLeftVelocity(double mps){
-    double rpm = mps * SpeedConvert;
+    double rpm = mps * SpeedConvert;  // speed convert relates wheel diameter & gear ratio to speed
     setLeftRPM(rpm);
 }
 
@@ -339,12 +354,13 @@ bool Drivetrain::testPath() {
             //printf("\nStarting Path Weaving");
             m_Path->createNewPath();
             m_Path->addWayPoint(0.0,0.0,0.0);
-            m_Path->addWayPoint(-2.44,1.7,0); //2 meters x direction
-            m_Path->addWayPoint(-6.16,1.7,0);
+            m_Path->addWayPoint(2.44,0.0,0); //2 meters x direction
+            m_Path->addWayPoint(10.0,0.0,0);
             tCnt = 0;
 
             if(m_Path->makePath()) {
                 m_Path->debug();
+                origTimeStamp = frc::Timer::GetFPGATimestamp();
                 pathState++;
             }
             else{
@@ -354,16 +370,23 @@ bool Drivetrain::testPath() {
             break;
         case 1:
             {
-            //printf("\n%i", tCnt);
-            if(tCnt)
+            double currTime = frc::Timer::GetFPGATimestamp() - origTimeStamp;
+            double tmr100 = currTime * 100;
+            int tmr = (int)tmr100;
+            if((tmr % 2) != 0)
+                tmr -= 1;
+            int ele = tmr - ((tmr / 2) + 1);
+            frc::SmartDashboard::PutNumber("Element",ele);
+
+            if(!tCnt)
                 m_Path->debug();
-            bool tdone = m_Path->traverse(tCnt,&rVel,&lVel);
+            bool tdone = m_Path->traverse(ele,&rVel,&lVel);
             frc::SmartDashboard::PutNumber("cnt",tCnt);
 
             frc::SmartDashboard::PutNumber("tr_R",rVel);
             frc::SmartDashboard::PutNumber("tr_L",lVel);
-            //setRightVelocity(-rVel);
-            //setLeftVelocity(-lVel);
+            setRightVelocity(rVel);
+            setLeftVelocity(lVel);
             tCnt++;
             if(tdone){
                 setRightVelocity(0);

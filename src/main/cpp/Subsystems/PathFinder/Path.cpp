@@ -85,16 +85,16 @@ bool PathFinder::traverse(int cnt, double *rightOut, double *leftOut) {
     m_traverseCount = cnt;
 
     if(m_L_Traj.segments[m_traverseCount].x < 0){
-        *leftOut = -m_L_Traj.segments[m_traverseCount].vel;
+        *leftOut = m_L_Traj.segments[m_traverseCount].vel;
     }
     else
-        *leftOut = m_L_Traj.segments[m_traverseCount].vel;
+        *leftOut = -m_L_Traj.segments[m_traverseCount].vel;
 
     if(m_R_Traj.segments[m_traverseCount].x < 0){
-        *rightOut = -m_R_Traj.segments[m_traverseCount].vel;
+        *rightOut = m_R_Traj.segments[m_traverseCount].vel;
     }
     else
-        *rightOut = m_R_Traj.segments[m_traverseCount].vel;
+        *rightOut = -m_R_Traj.segments[m_traverseCount].vel;
     
     /*printf("\nL,%i,%f,%f,%f,%f",m_traverseCount,m_L_Traj.segments[m_traverseCount].vel,\
         m_L_Traj.segments[m_traverseCount].acc,\
