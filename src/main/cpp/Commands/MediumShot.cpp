@@ -29,12 +29,12 @@ void MediumShot::Initialize() {
 
 // Called repeatedly when this Command is scheduled to run
 void MediumShot::Execute() {
-
+    done = Robot::shooter->hoodMedium();
 }
 
 // Make this return true when this Command no longer needs to run execute()
 bool MediumShot::IsFinished() {
-    return false;
+    return done;
 }
 
 // Called once after isFinished returns true

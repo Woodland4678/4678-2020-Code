@@ -29,12 +29,12 @@ void CloseShot::Initialize() {
 
 // Called repeatedly when this Command is scheduled to run
 void CloseShot::Execute() {
-
+    done = Robot::shooter->hoodLow();
 }
 
 // Make this return true when this Command no longer needs to run execute()
 bool CloseShot::IsFinished() {
-    return false;
+    return done;
 }
 
 // Called once after isFinished returns true
