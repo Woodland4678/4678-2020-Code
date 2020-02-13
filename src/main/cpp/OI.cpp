@@ -23,7 +23,7 @@
 #include "Commands/DeployWheelWheel.h"
 #include "Commands/DriveRobot.h"
 #include "Commands/IntakeDeploy.h"
-#include "Commands/IntakeUp.h"
+#include "Commands/IntakeRetract.h"
 #include "Commands/LongShot.h"
 #include "Commands/ManualMagazine.h"
 #include "Commands/MediumShot.h"
@@ -67,9 +67,9 @@ operator_Btn7_LT->WhenPressed(new DeployClimber());
 driverGamepad.reset(new frc::Joystick(0));
 
 driver_Btn8_RT.reset(new frc::JoystickButton(driverGamepad.get(), 8));
-driver_Btn8_RT->WhenPressed(new Shoot());
+driver_Btn8_RT->WhileHeld(new Shoot());
 driver_Btn3_B.reset(new frc::JoystickButton(driverGamepad.get(), 3));
-driver_Btn3_B->WhenPressed(new IntakeUp());
+driver_Btn3_B->WhenPressed(new IntakeRetract());
 driver_Btn2_A.reset(new frc::JoystickButton(driverGamepad.get(), 2));
 driver_Btn2_A->WhenPressed(new IntakeDeploy());
 driver_Btn6_RB.reset(new frc::JoystickButton(driverGamepad.get(), 6));
@@ -91,7 +91,7 @@ driver_Btn7_LT->WhenPressed(new AutoAim());
     frc::SmartDashboard::PutData("DeployWheelWheel", new DeployWheelWheel());
     frc::SmartDashboard::PutData("DeployClimber", new DeployClimber());
     frc::SmartDashboard::PutData("Shoot", new Shoot());
-    frc::SmartDashboard::PutData("IntakeUp", new IntakeUp());
+    frc::SmartDashboard::PutData("IntakeRetract", new IntakeRetract());
     frc::SmartDashboard::PutData("IntakeDeploy", new IntakeDeploy());
     frc::SmartDashboard::PutData("ShiftUpGear", new ShiftUpGear());
     frc::SmartDashboard::PutData("ShiftDownGear", new ShiftDownGear());
