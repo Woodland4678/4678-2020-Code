@@ -77,24 +77,33 @@ void PathFinder::debug(){
 }
 
 //---Traversing Path---
-bool PathFinder::traverse(int cnt, double *rightOut, double *leftOut) {
+void PathFinder::startTraverse(double time){
+	startTime = time;
+}
+
+bool PathFinder::traverse(double time, double *rightOut, double *leftOut) {
+	changeInTime = time - startTime;
+	double tmr100 = changeInTime * 100;
+	int tmr = (int)tmr100;
+	if((tmr % 2) != 0)
+		tmr--;
+	int m_traverseCount = tmr - ((tmr / 2) + 1);	
+	
     //Calculate the target encoder positions for both left and right using segments
-    if(cnt >= m_segmentCount)
+    if(m_traverseCount >= m_segmentCount)
         return true;
 
-    m_traverseCount = cnt;
-
     if(m_L_Traj.segments[m_traverseCount].x < 0){
-        *leftOut = m_L_Traj.segments[m_traverseCount].vel;
+        *leftOut = -m_L_Traj.segments[m_traverseCount].vel;
     }
     else
-        *leftOut = -m_L_Traj.segments[m_traverseCount].vel;
+        *leftOut = m_L_Traj.segments[m_traverseCount].vel;
 
     if(m_R_Traj.segments[m_traverseCount].x < 0){
-        *rightOut = m_R_Traj.segments[m_traverseCount].vel;
+        *rightOut = -m_R_Traj.segments[m_traverseCount].vel;
     }
     else
-        *rightOut = -m_R_Traj.segments[m_traverseCount].vel;
+        *rightOut = m_R_Traj.segments[m_traverseCount].vel;
     
     /*printf("\nL,%i,%f,%f,%f,%f",m_traverseCount,m_L_Traj.segments[m_traverseCount].vel,\
         m_L_Traj.segments[m_traverseCount].acc,\

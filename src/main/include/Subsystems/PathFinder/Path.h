@@ -91,6 +91,8 @@ private:
     int m_segmentCount = 0;
 
     double total_dist = 0;
+	double startTime = 0;
+	double changeInTime = 0;
     int m_traverseCount = 0;
 
     bool generateSpline(int idx, int way1, int way2);
@@ -116,7 +118,8 @@ public:
     bool tra_FormTrajectory(double startPower, int wayStart, double endPower, int wayEnd);
     void copySegment(int idx);
 
-    bool traverse(int cnt, double *rightOut, double *leftOut);
+    bool traverse(double time, double *rightOut, double *leftOut);
+	void startTraverse(double time);
 
 
     double angleDiffRadians(double from, double to);

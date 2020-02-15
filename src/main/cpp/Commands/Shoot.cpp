@@ -29,7 +29,7 @@ void Shoot::Initialize() {
 
 // Called repeatedly when this Command is scheduled to run
 void Shoot::Execute() {
-    Robot::shooter->SetShooterSpeed(3500); //rpm
+    Robot::shooter->SetShooterSpeed(1.0); //rpm
 }
 
 // Make this return true when this Command no longer needs to run execute()
