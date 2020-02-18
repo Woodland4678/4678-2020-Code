@@ -170,6 +170,22 @@ Children:
           value: '0'
       Base: Solenoid
       Name: controlPanelSolenoid
+    - Children: []
+      Properties:
+        CAN ID: !!robotbuilder.data.properties.ChoicesProperty
+          choices: *id001
+          default: '2'
+          name: CAN ID
+          validators: *id002
+          value: '16'
+        Motor Type: !!robotbuilder.data.properties.ChoicesProperty
+          choices: *id003
+          default: Brushless
+          name: Motor Type
+          validators: *id004
+          value: Brushless
+      Base: CAN SparkMAX
+      Name: wheelMotor
     Properties:
       Send to SmartDashboard: !!robotbuilder.data.properties.BooleanProperty {default: false,
         name: Send to SmartDashboard, validators: null, value: false}

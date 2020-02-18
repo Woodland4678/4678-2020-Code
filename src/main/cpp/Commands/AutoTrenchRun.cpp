@@ -37,15 +37,18 @@ void AutoTrenchRun::Initialize() {
         autoStep = autoAim;
     } else if (autoStartNum == 1) {
         startX = 0;
-        startY = -1; //-1 is in meters
+        startY = -1.2; //-1 is in meters
         autoStep = shoot;
     }
     path1 = new PathFinder(0.02,3,2,1,0.545);  // cycle time (s), max velocity (m/s), max acceleration (m/s^2), max jerk (m/s^3), distance between wheels (m)
     path1->createNewPath();
     path1->addWayPoint(startX, startY, 0);  // X is in front of robot, -X is behind, -Y is left, +Y is right
-    path1->addWayPoint(2.44, 0, 0); //2.44, 0, 0 - meters
-    path1->addWayPoint(10, 0, 0); //6.16, 0, 0 - meters
+    path1->addWayPoint(2.44, 0, 6); //2.44, 0, 0 - meters
+    path1->addWayPoint(4, 0, 0); //2.44, 0, 0 - meters
+    path1->addWayPoint(8, 0, 0); //2.44, 0, 0 - meters
+    path1->addWayPoint(10.0, 0, 0); //6.16, 0, 0 - meters
     path1->makePath();
+    path1->debug();
 
     path2 = new PathFinder(0.02,4,4,1,0.545);
     path2->createNewPath();
@@ -67,15 +70,17 @@ void AutoTrenchRun::Execute() {
 //            }
             if (true) {
                 autoStep = shoot;
+                path1->debug();
             }
         break;
         case shoot:
             //Shoot
-
+            path1->debug();
+            path1->startTraverse(frc::Timer::GetFPGATimestamp());
             autoStep = runFirstPath;
         break;
         case runFirstPath:
-            if (path1->traverse(cnt,&rVel,&lVel)) {   // cnt = how far down the path are you, right velocity (m/s), left velocity (m/s)
+            if (path1->traverse(frc::Timer::GetFPGATimestamp(),&rVel,&lVel)) {   // cnt = how far down the path are you, right velocity (m/s), left velocity (m/s)
                 autoStep = pause;
                 rVel = 0;
                 lVel = 0;
@@ -90,12 +95,13 @@ void AutoTrenchRun::Execute() {
             cnt++;
             if (cnt > 50) {
                 //autoStep = runSecondPath;
+                path2->startTraverse(frc::Timer::GetFPGATimestamp());
                 cnt = 0;
             }
             
         break;
         case runSecondPath:
-            if (path2->traverse(cnt,&rVel,&lVel)) {
+            if (path2->traverse(frc::Timer::GetFPGATimestamp(),&rVel,&lVel)) {
                 autoStep = pause;
                 rVel = 0;
                 lVel = 0;

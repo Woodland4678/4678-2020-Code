@@ -60,7 +60,7 @@ void LidarViewer::CameraStreamThread() {
   static const cv::Scalar white(255, 255, 255);
   static const cv::Size size(cameraWidth, cameraHeight);
   static const int centerX = cameraWidth >> 1;
-  static const int centerY = cameraHeight >> 1;
+  static const int centerY = cameraHeight;
   static const auto type = CV_8UC3;
 
   int frames = 0;
@@ -104,7 +104,7 @@ void LidarViewer::CameraStreamThread() {
       cv::putText(baseFrame, "LIDAR", cv::Point(10, 15),
                   cv::HersheyFonts::FONT_HERSHEY_SIMPLEX, 0.5, white, 1);
 
-      const int radii[] = {500, 1000, 2000, 3000, 4000, 5000};
+      const int radii[] = {500, 1000, 2000, 3000, 4000, 5000, 6000};
       for (int i = 0; i < (int)(sizeof(radii) / sizeof(int)); ++i) {
         const int radius = radii[i] * zoom;
         cv::circle(baseFrame, cv::Point(centerX, centerY), radius, blue, 1);
