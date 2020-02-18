@@ -24,17 +24,26 @@ IntakeDeploy::IntakeDeploy(): frc::Command() {
 
 // Called just before this Command runs the first time
 void IntakeDeploy::Initialize() {
-
+    Robot::intakes->deployIntakes();
 }
 
 // Called repeatedly when this Command is scheduled to run
 void IntakeDeploy::Execute() {
-    Robot::intakes->deployIntakes();
+    if (Robot::oi->getOperatorGamepad()->GetPOV() == 90) {
+        Robot::intakes->setIntakeSpeed(0,0.7,0.7);
+    } else if (Robot::oi->getOperatorGamepad()->GetPOV() == 180) {
+        Robot::intakes->setIntakeSpeed(0.7,0.7,0.7);
+    }  else if (Robot::oi->getOperatorGamepad()->GetPOV() == 270) {
+        Robot::intakes->setIntakeSpeed(0.7,0,0.7);
+    }
+    else {
+        Robot::intakes->stopIntakes();
+    }
 }
 
 // Make this return true when this Command no longer needs to run execute()
 bool IntakeDeploy::IsFinished() {
-    return true;
+    return false;
 }
 
 // Called once after isFinished returns true

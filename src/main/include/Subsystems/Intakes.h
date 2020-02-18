@@ -44,13 +44,15 @@ public:
 Intakes();
 	void InitDefaultCommand() override;
 	void Periodic() override;
-	void spinIntakes();
+	void spinIntakesConstant();
+	void setIntakeSpeed(double rightPower, double leftPower, double middlePower);
 	void stopIntakes();
 	void spitoutIntakes();
 	void stopLeft();
 	void stopRight();
 	void setLeft(double speed);
 	void setRight(double speed);
+	void setMiddle(double speed);
 	void deployIntakes();
 	void retractIntakes();
 

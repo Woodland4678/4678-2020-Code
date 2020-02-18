@@ -100,23 +100,31 @@ void Intakes::setLeft(double speed){
 void Intakes::setRight(double speed){
     rightRoller->Set(speed);
 }
+void Intakes::setMiddle(double speed) {
+    middleRoller->Set(speed);
+}
 
-void Intakes::spinIntakes(){
+void Intakes::spinIntakesConstant(){
     setRight(INTAKESPEED);
     setLeft(INTAKESPEED);
-    middleRoller->Set(INTAKESPEED);
+    setMiddle(INTAKESPEED);
+}
+void Intakes::setIntakeSpeed(double rightSpeed, double leftSpeed, double middleSpeed) {
+    setRight(rightSpeed);
+    setLeft(-leftSpeed);
+    setMiddle(middleSpeed);
 }
 
 void Intakes::stopIntakes(){
-    setRight(0);
-    setLeft(0);
-    middleRoller->Set(0);
+    rightRoller->Disable();
+    leftRoller->Disable();
+    middleRoller->Disable();
 }
 
 void Intakes::spitoutIntakes(){
     setRight(-INTAKESPEED);
     setLeft(-INTAKESPEED);
-    middleRoller->Set(-INTAKESPEED);
+    setMiddle(-INTAKESPEED);
 }
 
 void Intakes::deployIntakes(){
