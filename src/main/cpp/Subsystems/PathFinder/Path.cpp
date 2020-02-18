@@ -104,6 +104,11 @@ bool PathFinder::traverse(double time, double *rightOut, double *leftOut) {
     }
     else
         *rightOut = m_R_Traj.segments[m_traverseCount].vel;
+
+    //Gyro Modifications
+    
+
+
     
     /*printf("\nL,%i,%f,%f,%f,%f",m_traverseCount,m_L_Traj.segments[m_traverseCount].vel,\
         m_L_Traj.segments[m_traverseCount].acc,\
