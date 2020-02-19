@@ -416,7 +416,7 @@ double Drivetrain::autoAim(double target){
     double error = 0;
 	static double past = 0;
 	static double iValue = 0;
-	static int counter = 0;
+	//static int counter = 0;
 	double current = ml_targetHorizontial;//Target position calculated in periodic function
     //TODO: If we lose the target, reset the I value
 
