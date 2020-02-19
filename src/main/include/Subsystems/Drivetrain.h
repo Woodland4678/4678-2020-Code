@@ -115,6 +115,10 @@ Drivetrain();
 	
 	double origTimeStamp;
 
+	//Gear Shift Functions
+	void shiftUp();
+	void shiftDown();
+	
 	//Gryo
 	double getGyroReading();
 	void resetGyro();

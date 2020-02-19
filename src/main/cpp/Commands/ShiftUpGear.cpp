@@ -29,12 +29,12 @@ void ShiftUpGear::Initialize() {
 
 // Called repeatedly when this Command is scheduled to run
 void ShiftUpGear::Execute() {
-
+    Robot::drivetrain->shiftUp();
 }
 
 // Make this return true when this Command no longer needs to run execute()
 bool ShiftUpGear::IsFinished() {
-    return false;
+    return true;
 }
 
 // Called once after isFinished returns true
