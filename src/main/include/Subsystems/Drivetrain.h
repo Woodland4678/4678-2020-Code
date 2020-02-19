@@ -105,7 +105,7 @@ Drivetrain();
 	int tCnt = 0;
 
 	//Auto Controls
-	double AutoAim();
+	double autoAim(double target);
 	double mAA_p = 0;
 	double mAA_d = 0;
 	double mAA_i = 0;

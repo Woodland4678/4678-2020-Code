@@ -19,6 +19,7 @@
 #include "Commands/AutonomousCommand.h"
 #include "Commands/CloseShot.h"
 #include "Commands/ColourControl.h"
+#include "Commands/ConfigureShot.h"
 #include "Commands/DeployClimber.h"
 #include "Commands/DeployWheelWheel.h"
 #include "Commands/DriveRobot.h"
@@ -45,11 +46,11 @@ autoSwitch.reset(new frc::Joystick(2));
 operatorGamepad.reset(new frc::Joystick(1));
 
 operator_Btn2_A.reset(new frc::JoystickButton(operatorGamepad.get(), 2));
-operator_Btn2_A->WhenPressed(new LongShot());
+operator_Btn2_A->WhenPressed(new ConfigureShot(2));
 operator_Btn3_B.reset(new frc::JoystickButton(operatorGamepad.get(), 3));
-operator_Btn3_B->WhenPressed(new MediumShot());
+operator_Btn3_B->WhenPressed(new ConfigureShot(3));
 operator_Btn4_Y.reset(new frc::JoystickButton(operatorGamepad.get(), 4));
-operator_Btn4_Y->WhenPressed(new CloseShot());
+operator_Btn4_Y->WhenPressed(new ConfigureShot(4));
 operator_Btn1_X.reset(new frc::JoystickButton(operatorGamepad.get(), 1));
 operator_Btn1_X->WhenPressed(new ManualMagazine());
 operator_Btn6_RB.reset(new frc::JoystickButton(operatorGamepad.get(), 6));
@@ -80,6 +81,7 @@ driver_Btn7_LT.reset(new frc::JoystickButton(driverGamepad.get(), 7));
 driver_Btn7_LT->WhenPressed(new AutoAim());
 
     // SmartDashboard Buttons
+    frc::SmartDashboard::PutData("ConfigureShot", new ConfigureShot());
     frc::SmartDashboard::PutData("ManualMagazine", new ManualMagazine());
     frc::SmartDashboard::PutData("LongShot", new LongShot());
     frc::SmartDashboard::PutData("MediumShot", new MediumShot());

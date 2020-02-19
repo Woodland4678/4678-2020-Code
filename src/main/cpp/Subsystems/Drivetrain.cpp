@@ -412,7 +412,7 @@ bool Drivetrain::testPath() {
 }
 
 //-------------------------------------------Auto Controls--------------------------------------------
-double Drivetrain::AutoAim(){
+double Drivetrain::autoAim(double target){
     double error = 0;
 	static double past = 0;
 	static double iValue = 0;
@@ -420,7 +420,7 @@ double Drivetrain::AutoAim(){
 	double current = ml_targetHorizontial;//Target position calculated in periodic function
     //TODO: If we lose the target, reset the I value
 
-	error = 0 - (current / 30); //Divided by 30 because that value is the maximum given the resolution of the camera
+	error = target - (current / 30); //Divided by 30 because that value is the maximum given the resolution of the camera
 	double pValue = mAA_p*error;
 	iValue += mAA_i*(error);
 	double dValue = mAA_d*(past - current);
