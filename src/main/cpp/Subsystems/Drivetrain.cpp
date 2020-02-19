@@ -441,3 +441,11 @@ double Drivetrain::AutoAim(){
 	return error;
 }
 #pragma endregion
+
+void Drivetrain::shiftUp(){
+    shifter->Set(true);
+}
+
+void Drivetrain::shiftDown(){
+    shifter->Set(false);
+}

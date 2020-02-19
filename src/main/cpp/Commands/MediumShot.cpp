@@ -24,12 +24,12 @@ MediumShot::MediumShot(): frc::Command() {
 
 // Called just before this Command runs the first time
 void MediumShot::Initialize() {
-
+    Robot::shooter->releaseHood();
 }
 
 // Called repeatedly when this Command is scheduled to run
 void MediumShot::Execute() {
-    done = Robot::shooter->hoodMedium();
+    done = Robot::shooter->goToHoodPos(750); //change this constant for medium hood position
 }
 
 // Make this return true when this Command no longer needs to run execute()

@@ -111,4 +111,9 @@ Drivetrain();
 	double l_Set = 0;
 	
 	double origTimeStamp;
+
+	//Gear Shift Functions
+	void shiftUp();
+	void shiftDown();
+	
 };

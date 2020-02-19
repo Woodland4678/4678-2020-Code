@@ -24,12 +24,12 @@ LongShot::LongShot(): frc::Command() {
 
 // Called just before this Command runs the first time
 void LongShot::Initialize() {
-
+    Robot::shooter->releaseHood();
 }
 
 // Called repeatedly when this Command is scheduled to run
 void LongShot::Execute() {
-    done = Robot::shooter->hoodHigh();
+    done = Robot::shooter->goToHoodPos(1500); //change this constant for high hood position
 }
 
 // Make this return true when this Command no longer needs to run execute()

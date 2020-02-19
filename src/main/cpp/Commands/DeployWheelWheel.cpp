@@ -29,12 +29,12 @@ void DeployWheelWheel::Initialize() {
 
 // Called repeatedly when this Command is scheduled to run
 void DeployWheelWheel::Execute() {
-
+    Robot::controlPanel->deployWheelManipulator();
 }
 
 // Make this return true when this Command no longer needs to run execute()
 bool DeployWheelWheel::IsFinished() {
-    return false;
+    return true;
 }
 
 // Called once after isFinished returns true
