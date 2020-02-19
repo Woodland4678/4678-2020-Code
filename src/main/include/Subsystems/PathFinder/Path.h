@@ -27,9 +27,11 @@ private:
         double MaxDeaccel;
         double MaxJerk;
         double WheelBase;
+        double gryo_p;
+        double gryo_i;
         //Could add unit type mm / m / in / feet etc...
     }tpConfig;
-
+    double gyroIaccum = 0;
     typedef struct WayPoint {
         double x;
         double y;
@@ -118,7 +120,7 @@ public:
     bool tra_FormTrajectory(double startPower, int wayStart, double endPower, int wayEnd);
     void copySegment(int idx);
 
-    bool traverse(double time, double *rightOut, double *leftOut);
+    bool traverse(double time, double *rightOut, double *leftOut, double gyroReading);
 	void startTraverse(double time);
 
 

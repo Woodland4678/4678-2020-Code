@@ -9,6 +9,8 @@ PathFinder::PathFinder(double cycleTime, double maxSpeed, double maxAccel, doubl
     m_Config.MaxJerk = maxJerk;
     m_Config.WheelBase = wheelBase;
     m_Config.MaxDeaccel = maxAccel;
+    m_Config.gryo_p = 0.007;
+    m_Config.gryo_i = 0.0;
 
     m_WayPoint_Cnt = 0;
     m_Spline_Cnt = 0;
@@ -79,9 +81,10 @@ void PathFinder::debug(){
 //---Traversing Path---
 void PathFinder::startTraverse(double time){
 	startTime = time;
+    gyroIaccum = 0;
 }
 
-bool PathFinder::traverse(double time, double *rightOut, double *leftOut) {
+bool PathFinder::traverse(double time, double *rightOut, double *leftOut, double gyroReading) {
 	changeInTime = time - startTime;
 	double tmr100 = changeInTime * 100;
 	int tmr = (int)tmr100;
@@ -90,32 +93,38 @@ bool PathFinder::traverse(double time, double *rightOut, double *leftOut) {
 	int m_traverseCount = tmr - ((tmr / 2) + 1);	
 	
     //Calculate the target encoder positions for both left and right using segments
+    if(m_traverseCount < 0)
+        return false;
     if(m_traverseCount >= m_segmentCount)
         return true;
 
     if(m_L_Traj.segments[m_traverseCount].x < 0){
-        *leftOut = -m_L_Traj.segments[m_traverseCount].vel;
+        *leftOut = m_L_Traj.segments[m_traverseCount].vel;
     }
     else
-        *leftOut = m_L_Traj.segments[m_traverseCount].vel;
+        *leftOut = -m_L_Traj.segments[m_traverseCount].vel;
 
     if(m_R_Traj.segments[m_traverseCount].x < 0){
-        *rightOut = -m_R_Traj.segments[m_traverseCount].vel;
+        *rightOut = m_R_Traj.segments[m_traverseCount].vel;
     }
     else
-        *rightOut = m_R_Traj.segments[m_traverseCount].vel;
+        *rightOut = -m_R_Traj.segments[m_traverseCount].vel;
 
     //Gyro Modifications
-    
+    //Calculate error
+    double degree = -m_Traj.segments[m_traverseCount].heading * (180 / M_PI);
+    double err = gyroReading - degree;
+    gyroIaccum += err;
+    double g_mod = m_Config.gryo_p * err + m_Config.gryo_i * gyroIaccum;
 
+    //Modify left and right power
+    *rightOut -= g_mod;
+    *leftOut += g_mod;
+    //TODO: These signs may have to be swapped.
 
     
-    /*printf("\nL,%i,%f,%f,%f,%f",m_traverseCount,m_L_Traj.segments[m_traverseCount].vel,\
-        m_L_Traj.segments[m_traverseCount].acc,\
-        m_L_Traj.segments[m_traverseCount].x,\
-        m_L_Traj.segments[m_traverseCount].y\
-        );
-    
+    printf("\nR,%i,%f,%f,%f",m_traverseCount,gyroReading,degree,err);
+    /*
     printf("\nR,%i,%f,%f,%f,%f",m_traverseCount,m_R_Traj.segments[m_traverseCount].vel,\
         m_R_Traj.segments[m_traverseCount].acc,\
         m_R_Traj.segments[m_traverseCount].x,\
@@ -136,7 +145,7 @@ bool PathFinder::tra_FormTrajectory(double startPower, int wayStart, double endP
     double adjust_max_power;
     //if (wayStart == 0) {
     double start_discount = 0.5 * startPower * startPower / m_Config.MaxAccel;
-    double end_discount = 0.5 * endPower * endPower / m_Config.MaxAccel;
+    double end_discount = 0.5 * endPower * endPower / m_Config.MaxDeaccel;
     adjust_max_power = std::min(m_Config.MaxSpeed, sqrt(m_Config.MaxAccel * total_dist - start_discount - end_discount));
 
     double t_rampup = (adjust_max_power - startPower) / m_Config.MaxAccel;
