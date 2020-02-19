@@ -91,31 +91,6 @@ void Robot::TeleopInit() {
 }
 
 void Robot::TeleopPeriodic() {
-	if((oi->getDriverGamepad()->GetRawButton(1))&&(!pathdone)){
-		pathdone = drivetrain->testPath();
-	}
-	if(oi->getDriverGamepad()->GetRawButton(2)){
-		drivetrain->initPath();
-
-		pathdone = false;
-		limeRead = false;
-	}
-	if(oi->getDriverGamepad()->GetRawButton(3)){
-		drivetrain->setLimeLED(true);
-	}
-	if(oi->getDriverGamepad()->GetRawButton(4)){
-		drivetrain->setLimeLED(false);
-	}
-
-	if(oi->getOperatorGamepad()->GetRawButton(1)){
-		drivetrain->SetLimeFar(); //intakes->spinMag();
-	}
-	if(oi->getOperatorGamepad()->GetRawButton(2)){
-		drivetrain->SetLimeZoomed(); //intakes->stopMag();
-	}
-	if(oi->getOperatorGamepad()->GetRawButton(3)){
-		intakes->spitoutMag();
-	}
 	frc::Scheduler::GetInstance()->Run();
 }
 // void Robot::determineAutoSwitches()  {
