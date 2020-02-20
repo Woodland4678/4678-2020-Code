@@ -91,6 +91,15 @@ void Robot::TeleopInit() {
 }
 
 void Robot::TeleopPeriodic() {
+
+	if (oi->getOperatorGamepad()->GetPOV() == 90) {
+        intakes->setIntakeSpeed(0,0.7,0.7);
+    } else if (oi->getOperatorGamepad()->GetPOV() == 180) {
+        intakes->setIntakeSpeed(0.7,0.7,0.7);
+    }  else if (oi->getOperatorGamepad()->GetPOV() == 270) {
+        intakes->setIntakeSpeed(0.7,0,0.7);
+    }
+
 	frc::Scheduler::GetInstance()->Run();
 }
 // void Robot::determineAutoSwitches()  {

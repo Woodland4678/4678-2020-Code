@@ -29,16 +29,7 @@ void IntakeDeploy::Initialize() {
 
 // Called repeatedly when this Command is scheduled to run
 void IntakeDeploy::Execute() {
-    if (Robot::oi->getOperatorGamepad()->GetPOV() == 90) {
-        Robot::intakes->setIntakeSpeed(0,0.7,0.7);
-    } else if (Robot::oi->getOperatorGamepad()->GetPOV() == 180) {
-        Robot::intakes->setIntakeSpeed(0.7,0.7,0.7);
-    }  else if (Robot::oi->getOperatorGamepad()->GetPOV() == 270) {
-        Robot::intakes->setIntakeSpeed(0.7,0,0.7);
-    }
-    else {
-        Robot::intakes->stopIntakes();
-    }
+    Robot::intakes->deployIntakes();
 }
 
 // Make this return true when this Command no longer needs to run execute()

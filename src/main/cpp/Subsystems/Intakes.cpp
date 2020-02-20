@@ -185,12 +185,12 @@ int Intakes::getCellCount(){
 }
 
 //
-bool Intakes::index(){
+bool Intakes::index(bool c1Override){
     if(m_idxState > 0)
         m_idxcnt++;
     switch(m_idxState){
         case INDEXWAITING:
-            if(!magazineSensor2->Get()){
+            if((!magazineSensor2->Get())||(c1Override)){
                 m_idxState = INDEXCELL;
                 setMagazinePosition(INDEXENCODER);
             }
