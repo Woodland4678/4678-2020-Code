@@ -1399,7 +1399,7 @@ Children:
         validators: null
         value: *id019
       Button on SmartDashboard: !!robotbuilder.data.properties.BooleanProperty {default: true,
-        name: Button on SmartDashboard, validators: null, value: true}
+        name: Button on SmartDashboard, validators: null, value: false}
     Base: Command
     Name: ConfigureShot
   Properties: {}
@@ -1426,7 +1426,7 @@ Properties:
   Wiring file location: !!robotbuilder.data.properties.FileProperty {default: 'C:\Users\Dell1\',
     extension: null, folder: true, name: Wiring file location, validators: null, value: 'C:\Users\cybercavs\'}
   Export Directory: !!robotbuilder.data.properties.FileProperty {default: 'C:\Users\Dell1\FRCProjects',
-    extension: null, folder: true, name: Export Directory, validators: null, value: 'C:\Users\cybercavs\FRCProjects'}
+    extension: null, folder: true, name: Export Directory, validators: null, value: 'C:\Users\Dell1\FRCProjects'}
   Autonomous Command: !!robotbuilder.data.properties.TypeSelectionProperty {default: None,
     name: Autonomous Command, type: Command, validators: null, value: Autonomous Command}
 Base: Robot

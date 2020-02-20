@@ -36,18 +36,20 @@ void Shoot::Execute() {
             if (Robot::drivetrain->autoAim(Robot::shooter->getAimTarget()) <= acceptableAimError){
                 count++;
             } 
-            else {count = 0;}
-            if (count > 10){
+            else {
+                count = 0;
+            }
+            if (count > 10 && isHoodInPos == true){
                 shootState++;
                 count = 0;
             }
             if (isHoodInPos == false){
-                Robot::shooter->goToHoodPos(Robot::shooter->getHoodTarget());
+                isHoodInPos = Robot::shooter->goToHoodPos(Robot::shooter->getHoodTarget());
             }
             Robot::shooter->SetShooterSpeed(Robot::shooter->getTargetShootVel());
         break;
         case 1:
-
+           Robot::shooter->shoot();
         break;
         case 2:
 

@@ -44,13 +44,14 @@ Shooter();
 	void SetShooterSpeed(double speed);
 	void stopShooter();
 
-	void hoodLow();
-	void hoodMedium();
-	void hoodHigh();
+	//void hoodLow();
+	//void hoodMedium();
+	//void hoodHigh();
 	double readEncoderPos();
 	void lockHood();
 	void releaseHood();
 	bool goToHoodPos(double target);
+	void shoot();
 
 	void configHoodTarget(double target);
 	void configAimTarget(double target);
@@ -60,10 +61,12 @@ Shooter();
 	double getAimTarget();
 	double getTargetShootVel();
 	double getShooterVel();
+	double getVelError();
 
 	double findHoodError();
 	int count = 0;
 	int delayCount = 0;
+	int shootState = 0;
 
 	double hoodTargetPos = 0;
 	double autoAimTarget = 0;
