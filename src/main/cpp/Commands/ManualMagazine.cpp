@@ -24,17 +24,17 @@ ManualMagazine::ManualMagazine(): frc::Command() {
 
 // Called just before this Command runs the first time
 void ManualMagazine::Initialize() {
-
+    done = false;
 }
 
 // Called repeatedly when this Command is scheduled to run
 void ManualMagazine::Execute() {
-
+    done = Robot::intakes->index(true);
 }
 
 // Make this return true when this Command no longer needs to run execute()
 bool ManualMagazine::IsFinished() {
-    return false;
+    return done;
 }
 
 // Called once after isFinished returns true

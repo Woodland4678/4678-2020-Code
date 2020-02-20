@@ -108,7 +108,7 @@ Intakes();
 	//getMagazinePosition: Returns the current magazine position (encoder pulses)
 	double getMagazinePosition();
 	//index: brings a cell into the magazine once one is detected. Continuously call until it returns true.
-	bool index();
+	bool index(bool c1Override = false);
 
 	//--Power Cell Functions--
 	//incrementCellCount: Adds 1 to the power cell tracker variable
