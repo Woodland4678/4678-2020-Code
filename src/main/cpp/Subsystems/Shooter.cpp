@@ -191,7 +191,7 @@ double Shooter::getVelError(){
     return abs(shootTargetVel - shooterMotor1->GetSelectedSensorVelocity()); 
 }
 
-void Shooter::shoot(){
+bool Shooter::shoot(){
     switch(shootState) {
         case 0:
             if (getVelError() >= acceptableVelError){
@@ -202,9 +202,26 @@ void Shooter::shoot(){
             }
         break;
         case 1:
-            Robot::intakes->spinMag();
+            if (Robot::intakes->index(true)){
+                ballCounter++;
+                shootState++;
+                if (ballCounter >= 5){
+                    ballCounter = 0;
+                    shootState = 0;
+                    shootDelay = 0;
+                    return true;
+                }
+            }
         break;
-    } 
+        case 2:
+            shootDelay++;
+            if (shootDelay >= 20){
+                shootDelay = 0;
+                shootState--;
+            }
+        break;
+    }
+    return false;
     
 }
 

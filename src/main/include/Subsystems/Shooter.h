@@ -51,7 +51,7 @@ Shooter();
 	void lockHood();
 	void releaseHood();
 	bool goToHoodPos(double target);
-	void shoot();
+	bool shoot();
 
 	void configHoodTarget(double target);
 	void configAimTarget(double target);
@@ -64,9 +64,12 @@ Shooter();
 	double getVelError();
 
 	double findHoodError();
+
 	int count = 0;
 	int delayCount = 0;
 	int shootState = 0;
+	int ballCounter = 0;
+	int shootDelay = 0;
 
 	double hoodTargetPos = 0;
 	double autoAimTarget = 0;

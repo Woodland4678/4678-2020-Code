@@ -184,7 +184,11 @@ int Intakes::getCellCount(){
     return m_powerCellCount;
 }
 
-//
+void Intakes::clearCellCount(){
+    m_powerCellCount = 0;
+}
+
+// hi
 bool Intakes::index(bool c1Override){
     if(m_idxState > 0)
         m_idxcnt++;

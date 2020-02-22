@@ -26,14 +26,15 @@ const double acceptableAimError = 2;
 
 // Called just before this Command runs the first time
 void Shoot::Initialize() {
-
+    done = false;
+    shootState = 0;
 }
 
 // Called repeatedly when this Command is scheduled to run
 void Shoot::Execute() {
     switch (shootState){
         case 0:
-            if (Robot::drivetrain->autoAim(Robot::shooter->getAimTarget()) <= acceptableAimError){
+            if (abs(Robot::drivetrain->autoAim(Robot::shooter->getAimTarget())) <= acceptableAimError){
                 count++;
             } 
             else {
@@ -47,19 +48,19 @@ void Shoot::Execute() {
                 isHoodInPos = Robot::shooter->goToHoodPos(Robot::shooter->getHoodTarget());
             }
             Robot::shooter->SetShooterSpeed(Robot::shooter->getTargetShootVel());
-        break;
+            break;
         case 1:
-           Robot::shooter->shoot();
-        break;
-        case 2:
-
-        break;
+            if (Robot::shooter->shoot()){
+                done = true;
+                Robot::intakes->clearCellCount();
+            }
+            break;
     }
 }
 
 // Make this return true when this Command no longer needs to run execute()
 bool Shoot::IsFinished() {
-    return false;
+    return done;
 }
 
 // Called once after isFinished returns true
