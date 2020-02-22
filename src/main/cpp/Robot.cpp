@@ -100,6 +100,14 @@ void Robot::TeleopPeriodic() {
         intakes->setIntakeSpeed(0.7,0,0.7);
     }
 
+	if (oi->getDriverGamepad()->GetPOV() == 90){
+		shooter->SetShooterSpeed(1000);
+	} else if (oi->getDriverGamepad()->GetPOV() == 180) {
+		shooter->SetShooterSpeed(2500);
+	} else if (oi->getDriverGamepad()->GetPOV() == 270) {
+		shooter->SetShooterSpeed(4000);
+	}
+
 	frc::Scheduler::GetInstance()->Run();
 }
 // void Robot::determineAutoSwitches()  {
