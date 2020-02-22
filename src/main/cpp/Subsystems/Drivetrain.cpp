@@ -57,10 +57,10 @@ leftSlave.reset(new rev::CANSparkMax(2, rev::CANSparkMax::MotorType::kBrushless)
 rightMaster.reset(new rev::CANSparkMax(3, rev::CANSparkMax::MotorType::kBrushless));
 
 
-rightSlave.reset(new rev::CANSparkMax(5, rev::CANSparkMax::MotorType::kBrushless));
+rightSlave.reset(new rev::CANSparkMax(4, rev::CANSparkMax::MotorType::kBrushless));
 
 
-shifter.reset(new frc::Solenoid(0, 4));
+shifter.reset(new frc::Solenoid(0, 0));
 AddChild("shifter", shifter);
 
 

@@ -81,7 +81,6 @@ driver_Btn7_LT.reset(new frc::JoystickButton(driverGamepad.get(), 7));
 driver_Btn7_LT->WhenPressed(new AutoAim());
 
     // SmartDashboard Buttons
-    frc::SmartDashboard::PutData("ConfigureShot", new ConfigureShot(0));
     frc::SmartDashboard::PutData("ManualMagazine", new ManualMagazine());
     frc::SmartDashboard::PutData("LongShot", new LongShot());
     frc::SmartDashboard::PutData("MediumShot", new MediumShot());

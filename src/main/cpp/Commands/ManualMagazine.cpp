@@ -30,6 +30,8 @@ void ManualMagazine::Initialize() {
 // Called repeatedly when this Command is scheduled to run
 void ManualMagazine::Execute() {
     done = Robot::intakes->index(true);
+    if (done)
+        Robot::intakes->shiftCells(true);
 }
 
 // Make this return true when this Command no longer needs to run execute()

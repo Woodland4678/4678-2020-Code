@@ -52,7 +52,6 @@ void Shoot::Execute() {
         case 1:
             if (Robot::shooter->shoot()){
                 done = true;
-                Robot::intakes->clearCellCount();
             }
             break;
     }
