@@ -86,6 +86,7 @@ void Robot::TeleopInit() {
 	limeRead = false;
 	hor = 0;
 	dir = 0;
+	intakes->clearMagEncoder();
 	if (autonomousCommand != nullptr)
 		autonomousCommand->Cancel();
 }
@@ -93,20 +94,26 @@ void Robot::TeleopInit() {
 void Robot::TeleopPeriodic() {
 
 	if (oi->getOperatorGamepad()->GetPOV() == 90) {
-        intakes->setIntakeSpeed(0,0.7,0.7);
+        shooter->stopShooter();
     } else if (oi->getOperatorGamepad()->GetPOV() == 180) {
-        intakes->setIntakeSpeed(0.7,0.7,0.7);
+        intakes->spinMag();
     }  else if (oi->getOperatorGamepad()->GetPOV() == 270) {
         intakes->setIntakeSpeed(0.7,0,0.7);
     }
 
 	if (oi->getDriverGamepad()->GetPOV() == 90){
-		shooter->SetShooterSpeed(1000);
+		shooter->SetShooterSpeed(0.4);
 	} else if (oi->getDriverGamepad()->GetPOV() == 180) {
-		shooter->SetShooterSpeed(2500);
+		shooter->SetShooterSpeed(0.8);
 	} else if (oi->getDriverGamepad()->GetPOV() == 270) {
-		shooter->SetShooterSpeed(4000);
+		shooter->SetShooterSpeed(1.0);
 	}
+
+	frc::SmartDashboard::PutNumber("ShooterMotor1", drivetrain->readPDPCurrent(12));
+	frc::SmartDashboard::PutNumber("ShooterMotor2", drivetrain->readPDPCurrent(13));
+	frc::SmartDashboard::PutNumber("ShooterMotor3", drivetrain->readPDPCurrent(14));
+	frc::SmartDashboard::PutNumber("ShooterMotor4", drivetrain->readPDPCurrent(15));
+
 
 	frc::Scheduler::GetInstance()->Run();
 }

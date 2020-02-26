@@ -12,7 +12,7 @@ Children:
           default: '2'
           name: CAN ID
           validators: &id002 [CANID, DistinctValidator]
-          value: '1'
+          value: '5'
         Motor Type: !!robotbuilder.data.properties.ChoicesProperty
           choices: &id003 [Brushless, Brushed]
           default: Brushless
@@ -28,7 +28,7 @@ Children:
           default: '2'
           name: CAN ID
           validators: *id002
-          value: '2'
+          value: '6'
         Motor Type: !!robotbuilder.data.properties.ChoicesProperty
           choices: *id003
           default: Brushless
@@ -44,7 +44,7 @@ Children:
           default: '2'
           name: CAN ID
           validators: *id002
-          value: '3'
+          value: '9'
         Motor Type: !!robotbuilder.data.properties.ChoicesProperty
           choices: *id003
           default: Brushless
@@ -60,7 +60,7 @@ Children:
           default: '2'
           name: CAN ID
           validators: *id002
-          value: '5'
+          value: '10'
         Motor Type: !!robotbuilder.data.properties.ChoicesProperty
           choices: *id003
           default: Brushless
@@ -86,6 +86,17 @@ Children:
           value: '0'
       Base: Solenoid
       Name: shifter
+    - Children: []
+      Properties:
+        CAN ID: !!robotbuilder.data.properties.ChoicesProperty
+          choices: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11',
+            '12', '13', '14', '15', '16', '17', '18', '19', '20']
+          default: '0'
+          name: CAN ID
+          validators: null
+          value: '20'
+      Base: PowerDistributionPanel
+      Name: PDP
     Properties:
       Send to SmartDashboard: !!robotbuilder.data.properties.BooleanProperty {default: false,
         name: Send to SmartDashboard, validators: null, value: false}
@@ -111,7 +122,7 @@ Children:
           default: '2'
           name: CAN ID
           validators: *id002
-          value: '13'
+          value: '14'
         Motor Type: !!robotbuilder.data.properties.ChoicesProperty
           choices: *id003
           default: Brushless
@@ -127,7 +138,7 @@ Children:
           default: '2'
           name: CAN ID
           validators: *id002
-          value: '14'
+          value: '15'
         Motor Type: !!robotbuilder.data.properties.ChoicesProperty
           choices: *id003
           default: Brushless
@@ -161,7 +172,7 @@ Children:
           default: '0'
           name: Output Channel (Solenoid)
           validators: *id007
-          value: '0'
+          value: '2'
         Output PCM (Solenoid): !!robotbuilder.data.properties.ChoicesProperty
           choices: *id008
           default: '0'
@@ -177,7 +188,7 @@ Children:
           default: '2'
           name: CAN ID
           validators: *id002
-          value: '16'
+          value: '12'
         Motor Type: !!robotbuilder.data.properties.ChoicesProperty
           choices: *id003
           default: Brushless
@@ -213,7 +224,7 @@ Children:
           default: '2'
           name: CAN ID
           validators: &id011 [CANID]
-          value: '9'
+          value: '1'
       Base: Talon SRX
       Name: shooterMotor1
     - Children: []
@@ -223,7 +234,7 @@ Children:
           default: '2'
           name: CAN ID
           validators: *id011
-          value: '10'
+          value: '2'
       Base: Talon SRX
       Name: shooterMotor2
     - Children: []
@@ -233,7 +244,7 @@ Children:
           default: '2'
           name: CAN ID
           validators: *id011
-          value: '11'
+          value: '3'
       Base: Talon SRX
       Name: shooterMotor3
     - Children: []
@@ -243,7 +254,7 @@ Children:
           default: '2'
           name: CAN ID
           validators: *id011
-          value: '12'
+          value: '4'
       Base: Talon SRX
       Name: shooterMotor4
     - Children: []
@@ -253,7 +264,7 @@ Children:
           default: '2'
           name: CAN ID
           validators: *id011
-          value: '15'
+          value: '16'
       Base: Talon SRX
       Name: hoodMotor
     - Children: []
@@ -263,7 +274,7 @@ Children:
           default: '0'
           name: Output Channel (Solenoid)
           validators: *id007
-          value: '2'
+          value: '3'
         Output PCM (Solenoid): !!robotbuilder.data.properties.ChoicesProperty
           choices: *id008
           default: '0'
@@ -297,7 +308,7 @@ Children:
           default: '2'
           name: CAN ID
           validators: *id002
-          value: '6'
+          value: '11'
         Motor Type: !!robotbuilder.data.properties.ChoicesProperty
           choices: *id003
           default: Brushless
@@ -313,7 +324,7 @@ Children:
           default: '2'
           name: CAN ID
           validators: *id002
-          value: '8'
+          value: '13'
         Motor Type: !!robotbuilder.data.properties.ChoicesProperty
           choices: *id003
           default: Brushless
@@ -333,7 +344,7 @@ Children:
           validators: &id013 [DigitalChannel]
           value: '0'
       Base: Digital Input
-      Name: magazineSensor1
+      Name: magazineSensorLow
     - Children: []
       Properties:
         Input Channel (Digital): !!robotbuilder.data.properties.ChoicesProperty
@@ -343,7 +354,7 @@ Children:
           validators: *id013
           value: '1'
       Base: Digital Input
-      Name: magazineSensor2
+      Name: magazineSensorHigh
     - Children: []
       Properties:
         Output Channel (Solenoid): !!robotbuilder.data.properties.ChoicesProperty
@@ -367,7 +378,7 @@ Children:
           default: '2'
           name: CAN ID
           validators: *id002
-          value: '4'
+          value: '7'
         Motor Type: !!robotbuilder.data.properties.ChoicesProperty
           choices: *id003
           default: Brushless
@@ -383,7 +394,7 @@ Children:
           default: '2'
           name: CAN ID
           validators: *id002
-          value: '7'
+          value: '8'
         Motor Type: !!robotbuilder.data.properties.ChoicesProperty
           choices: *id003
           default: Brushless
@@ -1394,10 +1405,10 @@ Children:
       Requires: !!robotbuilder.data.properties.TypeSelectionProperty {default: None,
         name: Requires, type: Subsystem, validators: null, value: None}
       Parameter presets: !!robotbuilder.data.properties.ParameterSetProperty
-        default: &id019 []
+        default: []
         name: Parameter presets
         validators: null
-        value: *id019
+        value: []
       Button on SmartDashboard: !!robotbuilder.data.properties.BooleanProperty {default: true,
         name: Button on SmartDashboard, validators: null, value: false}
     Base: Command
@@ -1423,10 +1434,10 @@ Properties:
     name: Export Subsystems, validators: null, value: true}
   Simulation World File: !!robotbuilder.data.properties.StringProperty {default: /usr/share/frcsim/worlds/GearsBotDemo.world,
     name: Simulation World File, validators: null, value: /usr/share/frcsim/worlds/GearsBotDemo.world}
-  Wiring file location: !!robotbuilder.data.properties.FileProperty {default: 'C:\Users\Dell1\',
+  Wiring file location: !!robotbuilder.data.properties.FileProperty {default: 'C:\Users\cybercavs\',
     extension: null, folder: true, name: Wiring file location, validators: null, value: 'C:\Users\cybercavs\'}
-  Export Directory: !!robotbuilder.data.properties.FileProperty {default: 'C:\Users\Dell1\FRCProjects',
-    extension: null, folder: true, name: Export Directory, validators: null, value: 'C:\Users\Dell1\FRCProjects'}
+  Export Directory: !!robotbuilder.data.properties.FileProperty {default: 'C:\Users\cybercavs\FRCProjects',
+    extension: null, folder: true, name: Export Directory, validators: null, value: 'C:\Users\cybercavs\FRCProjects'}
   Autonomous Command: !!robotbuilder.data.properties.TypeSelectionProperty {default: None,
     name: Autonomous Command, type: Command, validators: null, value: Autonomous Command}
 Base: Robot
