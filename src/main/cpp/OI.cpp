@@ -77,7 +77,7 @@ driver_Btn6_RB->WhenPressed(new ShiftUpGear());
 driver_Btn5_LB.reset(new frc::JoystickButton(driverGamepad.get(), 5));
 driver_Btn5_LB->WhenPressed(new ShiftDownGear());
 driver_Btn7_LT.reset(new frc::JoystickButton(driverGamepad.get(), 7));
-driver_Btn7_LT->WhenPressed(new AutoAim());
+driver_Btn7_LT->WhileHeld(new AutoAim());
 
     // SmartDashboard Buttons
     frc::SmartDashboard::PutData("AutonomousCommand", new AutonomousCommand());
