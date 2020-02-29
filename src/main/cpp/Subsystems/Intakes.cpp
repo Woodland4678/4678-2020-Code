@@ -16,6 +16,8 @@ const double INTAKESPEED = 0.70;
 const double MAGSPEED = -0.7;
 const double INDEXENCODER = -20;
 const double INDEXERROR = 0.5;
+const int REVMIDDLECNT = 3;
+const double REVMIDDLESPEED = 0;
 
 const double MAG_P = 1;
 const double MAG_I = 0;
@@ -98,7 +100,8 @@ void Intakes::Periodic() {
     frc::SmartDashboard::PutBoolean("Cell 3 State", cells[2]);
     frc::SmartDashboard::PutBoolean("Cell 4 State", cells[3]);
     frc::SmartDashboard::PutBoolean("Cell 5 State", cells[4]);
-    
+    frc::SmartDashboard::PutNumber("Index State",m_idxState);
+    frc::SmartDashboard::PutBoolean("Index Sensor",!magazineSensorLow->Get());
 
 
     //When deployed start looking for power cells
@@ -230,25 +233,6 @@ bool Intakes::shiftCells(bool firstCell){
     return true;
 }
 
-/*
-void Intakes::incrementCellCount(){
-    m_powerCellCount++;
-}
-
-void Intakes::decrementCellCount(){
-    m_powerCellCount--;
-}
-
-int Intakes::getCellCount(){
-    return m_powerCellCount;
-}
-
-void Intakes::clearCellCount(){
-    m_powerCellCount = 0;
-}
-*/
-
-// hi
 bool Intakes::index(bool c1Override){
     if(m_idxState > 0)
         m_idxcnt++;
@@ -256,11 +240,18 @@ bool Intakes::index(bool c1Override){
         case INDEXWAITING:
             if((!magazineSensorLow->Get())||(c1Override)){
                 m_idxState = INDEXCELL;
+                m_idxcnt = 0;
                 setMagazinePosition(INDEXENCODER);
+                //setMiddle(REVMIDDLESPEED);
             }
             break;
         case INDEXCELL:
             {
+            //Move the middle roller backwards for a short peroid of time to avoid two cells
+            //  colliding in the indexer.
+            //if(m_idxcnt == REVMIDDLECNT)
+            //    setMiddle(INTAKESPEED);
+            //Check for when the shooter gets up to speed
             double err = abs(INDEXENCODER - getMagazinePosition());
             if(err < INDEXERROR)
                 m_idxState = INDEXCOMPLETE;

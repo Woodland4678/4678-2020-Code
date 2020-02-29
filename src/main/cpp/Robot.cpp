@@ -103,11 +103,13 @@ void Robot::TeleopPeriodic() {
     }
 
 	if (oi->getDriverGamepad()->GetPOV() == 90){
-		shooter->SetShooterSpeed(0.4);
+		//6826
+		shooter->SetShooterSpeed(1000);
 	} else if (oi->getDriverGamepad()->GetPOV() == 180) {
-		shooter->SetShooterSpeed(0.8);
+		shooter->SetShooterSpeed(4000);
 	} else if (oi->getDriverGamepad()->GetPOV() == 270) {
-		shooter->SetShooterSpeed(1.0);
+		drivetrain->setLimeLED(limeRead);
+		limeRead ^= 1;
 	}
 
 	frc::SmartDashboard::PutNumber("ShooterMotor1", drivetrain->readPDPCurrent(12));
