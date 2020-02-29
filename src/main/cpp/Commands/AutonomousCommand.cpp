@@ -23,9 +23,10 @@ AutonomousCommand::AutonomousCommand(): frc::Command() {
 
 // Called just before this Command runs the first time
 void AutonomousCommand::Initialize() {
+    Robot::drivetrain->shiftUp();
     	// switch 1 determines where the robot is starting from against the wall
     // see AutoScenarioHelpers.cpp  transformConsoleSwitch1 - values there must match below
-
+    autoMode = 0;
 	if (Robot::oi->getAutoSwitch()->GetRawButton(14)) {
 		autoStartNum += 1;
 	}
@@ -54,8 +55,10 @@ void AutonomousCommand::Initialize() {
         startY = 0;
     }
 
-    if (autoMode == 0) {
+    if (autoMode == 1) {
         autonomousMode = new AutoTrenchRun();
+    } else if (autoMode == 2) {
+        autonomousMode = new AutoTenBall();
     }
 	// frc::SmartDashboard::PutNumber("Auto Mode", autoMode);
 	// frc::SmartDashboard::PutNumber("Auto Side", autoSide);

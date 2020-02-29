@@ -95,7 +95,7 @@ bool PathFinder::traverse(double time, double *rightOut, double *leftOut, double
     //Calculate the target encoder positions for both left and right using segments
     if(m_traverseCount < 0)
         return false;
-    if(m_traverseCount >= m_segmentCount)
+    if(m_traverseCount > m_segmentCount)
         return true;
 
     if(m_L_Traj.segments[m_traverseCount].x < 0){
@@ -123,7 +123,7 @@ bool PathFinder::traverse(double time, double *rightOut, double *leftOut, double
     //TODO: These signs may have to be swapped.
 
     
-    printf("\nR,%i,%f,%f,%f",m_traverseCount,gyroReading,degree,err);
+    printf("\nR,%i,%i,%f,%f",m_traverseCount,m_segmentCount,*rightOut,*leftOut);
     /*
     printf("\nR,%i,%f,%f,%f,%f",m_traverseCount,m_R_Traj.segments[m_traverseCount].vel,\
         m_R_Traj.segments[m_traverseCount].acc,\
