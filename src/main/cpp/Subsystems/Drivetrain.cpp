@@ -60,7 +60,7 @@ rightMaster.reset(new rev::CANSparkMax(9, rev::CANSparkMax::MotorType::kBrushles
 rightSlave.reset(new rev::CANSparkMax(10, rev::CANSparkMax::MotorType::kBrushless));
 
 
-shifter.reset(new frc::Solenoid(0, 0));
+shifter.reset(new frc::Solenoid(0, 4));
 AddChild("shifter", shifter);
 
 pDP.reset(new frc::PowerDistributionPanel(20));
