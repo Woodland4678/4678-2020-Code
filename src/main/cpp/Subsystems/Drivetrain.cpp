@@ -104,7 +104,7 @@ AddChild("PDP", pDP);
 
     m_Path = new PathFinder(0.02,3,2,1,0.545);
 
-    mAA_p = 0.19;
+    mAA_p = 0.29;
     mAA_i = 0.001;
 	mAA_d = 0;
 

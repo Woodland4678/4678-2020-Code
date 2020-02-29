@@ -98,7 +98,8 @@ void Robot::TeleopPeriodic() {
     } else if (oi->getOperatorGamepad()->GetPOV() == 180) {
         intakes->spinMag();
     }  else if (oi->getOperatorGamepad()->GetPOV() == 270) {
-        intakes->setIntakeSpeed(0.7,0,0.7);
+        drivetrain->setLimeLED(limeRead);
+		limeRead ^= 1;
     }
 
 	if (oi->getDriverGamepad()->GetPOV() == 90){
