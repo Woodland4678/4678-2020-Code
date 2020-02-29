@@ -24,7 +24,7 @@ LongShot::LongShot(): frc::Command() {
 
 // Called just before this Command runs the first time
 void LongShot::Initialize() {
-    Robot::shooter->releaseHood();
+    //Robot::shooter->releaseHood();
 }
 
 // Called repeatedly when this Command is scheduled to run

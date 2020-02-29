@@ -24,7 +24,7 @@ CloseShot::CloseShot(): frc::Command() {
 
 // Called just before this Command runs the first time
 void CloseShot::Initialize() {
-    Robot::shooter->releaseHood();
+    //Robot::shooter->releaseHood();
 }
 
 // Called repeatedly when this Command is scheduled to run
