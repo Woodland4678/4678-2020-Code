@@ -32,29 +32,30 @@ void Shoot::Initialize() {
 
 // Called repeatedly when this Command is scheduled to run
 void Shoot::Execute() {
-    switch (shootState){
-        case 0:
-            if (abs(Robot::drivetrain->autoAim(Robot::shooter->getAimTarget())) <= acceptableAimError){
-                count++;
-            } 
-            else {
-                count = 0;
-            }
-            if (count > 10 && isHoodInPos == true){
-                shootState++;
-                count = 0;
-            }
-            if (isHoodInPos == false){
-                isHoodInPos = Robot::shooter->goToHoodPos(Robot::shooter->getHoodTarget());
-            }
-            Robot::shooter->SetShooterSpeed(Robot::shooter->getTargetShootVel());
-            break;
-        case 1:
-            if (Robot::shooter->shoot()){
-                done = true;
-            }
-            break;
-    }
+    Robot::intakes->spinMag();
+    // switch (shootState){
+    //     case 0:
+    //         if (abs(Robot::drivetrain->autoAim(Robot::shooter->getAimTarget())) <= acceptableAimError){
+    //             count++;
+    //         } 
+    //         else {
+    //             count = 0;
+    //         }
+    //         if (count > 10 && isHoodInPos == true){
+    //             shootState++;
+    //             count = 0;
+    //         }
+    //         if (isHoodInPos == false){
+    //             isHoodInPos = Robot::shooter->goToHoodPos(Robot::shooter->getHoodTarget());
+    //         }
+    //         Robot::shooter->SetShooterSpeed(Robot::shooter->getTargetShootVel());
+    //         break;
+    //     case 1:
+    //         if (Robot::shooter->shoot()){
+    //             done = true;
+    //         }
+    //         break;
+    // }
 }
 
 // Make this return true when this Command no longer needs to run execute()
@@ -65,6 +66,7 @@ bool Shoot::IsFinished() {
 // Called once after isFinished returns true
 void Shoot::End() {
     Robot::shooter->stopShooter();
+    Robot::intakes->stopMag();
 }
 
 // Called when another command which requires one or more of the same

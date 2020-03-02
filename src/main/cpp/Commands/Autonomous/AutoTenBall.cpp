@@ -25,13 +25,13 @@ void AutoTenBall::Initialize() {
     path1 = new PathFinder(0.02,3,2,1,0.545);  // cycle time (s), max velocity (m/s), max acceleration (m/s^2), max jerk (m/s^3), distance between wheels (m)
     path1->createNewPath();
     path1->addWayPoint(0, 0, 0);  // X is in front of robot, -X is behind, -Y is left, +Y is right
-    path1->addWayPoint(-1.75, 0, 0); //2.44, 0, 0 - meters
-    path1->addWayPoint(-2.35, -0.1, 45); //2.44, 0, 0 - meters
+    path1->addWayPoint(1.75, 0, 0); //2.44, 0, 0 - meters
+    path1->addWayPoint(2.35, 0.5, 45); //2.44, 0, 0 - meters
     path1->makePath();
 
     path2 = new PathFinder(0.02,3,2,1,0.545);
     path2->createNewPath();
-    path2->addWayPoint(-2.35, -0.1, 45);
+    path2->addWayPoint(2.35, 0.5, 45);
     path2->addWayPoint(0,0,0);
     path2->makePath();
 
@@ -62,7 +62,9 @@ void AutoTenBall::Execute() {
             Robot::shooter->goToHoodPos(0); //will need to adjust this value
             Robot::intakes->deployIntakes();
             if (path1->traverse(frc::Timer::GetFPGATimestamp(),&rVel,&lVel,Robot::drivetrain->getGyroReading())) {   // cnt = how far down the path are you, right velocity (m/s), left velocity (m/s)
-                autoStep = returnToShootFirstVolley;
+                autoStep = delay;
+                nextAutoStep = returnToShootFirstVolley;
+                delayCount = 50;
                 path2->startTraverse(frc::Timer::GetFPGATimestamp());
                 rVel = 0;
                 lVel = 0;
@@ -86,11 +88,11 @@ void AutoTenBall::Execute() {
         break;
         case shoot:
             Robot::intakes->spinMag();
-            if (Robot::intakes->countCells() == 0) {
-                autoStep = runTrench;
-                path3->startTraverse(frc::Timer::GetFPGATimestamp());
-                Robot::shooter->goToHoodPos(0); //lower hood so we go through trench
-            }
+            // if (Robot::intakes->countCells() == 0) {
+            //     autoStep = runTrench;
+            //     path3->startTraverse(frc::Timer::GetFPGATimestamp());
+            //     Robot::shooter->goToHoodPos(0); //lower hood so we go through trench
+            // }
         break;
         case runTrench:
             Robot::intakes->deployIntakes();
@@ -123,6 +125,13 @@ void AutoTenBall::Execute() {
         break;
         case finalShoot:
             Robot::intakes->spinMag();
+        break;
+        case delay:
+            if (cnt >= delayCount) {
+                autoStep = nextAutoStep;
+                cnt = 0;
+            }
+            cnt++;
         break;
     }
 }
