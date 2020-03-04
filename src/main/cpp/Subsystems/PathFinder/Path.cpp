@@ -112,8 +112,20 @@ bool PathFinder::traverse(double time, double *rightOut, double *leftOut, double
 
     //Gyro Modifications
     //Calculate error
-    double degree = -m_Traj.segments[m_traverseCount].heading * (180 / M_PI);
-    double err = gyroReading - degree;
+
+    //-y
+    //  heading around 360
+
+    //-x
+    //  head is 180
+    double degree = m_Traj.segments[m_traverseCount].heading * (180 / M_PI);
+    if(m_Traj.segments[m_traverseCount].x < 0){
+        degree -= 180;
+        degree *= -1;
+    }
+    if(degree > 180)
+        degree -= 360;
+    double err = gyroReading - (-degree);
     gyroIaccum += err;
     double g_mod = m_Config.gryo_p * err + m_Config.gryo_i * gyroIaccum;
 
@@ -123,12 +135,18 @@ bool PathFinder::traverse(double time, double *rightOut, double *leftOut, double
     //TODO: These signs may have to be swapped.
 
     
-    printf("\nR,%i,%i,%f,%f",m_traverseCount,m_segmentCount,*rightOut,*leftOut);
-    /*
-    printf("\nR,%i,%f,%f,%f,%f",m_traverseCount,m_R_Traj.segments[m_traverseCount].vel,\
+    printf("\nT,%i,%f,%f,%f",m_traverseCount,degree,gyroReading,err);
+
+    /*printf("\nR,%i,%f,%f,%f,%f",m_traverseCount,m_R_Traj.segments[m_traverseCount].vel,\
         m_R_Traj.segments[m_traverseCount].acc,\
         m_R_Traj.segments[m_traverseCount].x,\
         m_R_Traj.segments[m_traverseCount].y\
+        );
+
+    printf("\nL,%i,%f,%f,%f,%f",m_traverseCount,m_L_Traj.segments[m_traverseCount].vel,\
+        m_L_Traj.segments[m_traverseCount].acc,\
+        m_L_Traj.segments[m_traverseCount].x,\
+        m_L_Traj.segments[m_traverseCount].y\
         );*/
 
     return false;

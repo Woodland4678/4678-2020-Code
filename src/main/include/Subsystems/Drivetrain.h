@@ -101,6 +101,7 @@ Drivetrain();
 	PathFinder *m_Path;
 	bool testPath();
 	void initPath();
+	bool pTest = false;
 	int pathState = 0;
 	double rVel = 0;
 	double lVel = 0;

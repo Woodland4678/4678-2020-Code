@@ -102,7 +102,7 @@ AddChild("PDP", pDP);
     rightMaster->SetSmartCurrentLimit(CurrenLimit);
 
 
-    m_Path = new PathFinder(0.02,3,2,1,0.545);
+    m_Path = new PathFinder(0.02,3,2,1,0.7112);
 
     mAA_p = 0.29;
     mAA_i = 0.001;
@@ -208,10 +208,12 @@ void Drivetrain::setRightPosition(double encoder) {
 }
 
 void Drivetrain::setRightPower(double pwr) {
-    rightMaster->Set(-pwr);
+    if(!pTest)
+        rightMaster->Set(-pwr);
 }
 void Drivetrain::setLeftPower(double pwr) {
-    leftMaster->Set(pwr);
+    if(!pTest)
+        leftMaster->Set(pwr);
 }
 #pragma endregion
 
@@ -378,11 +380,13 @@ bool Drivetrain::testPath() {
             //printf("\nStarting Path Weaving");
             m_Path->createNewPath();
             m_Path->addWayPoint(0.0,0.0,0.0);
-            m_Path->addWayPoint(4,4,89); //2 meters x direction
+            m_Path->addWayPoint(3,-1,0); //2 meters x direction
             tCnt = 0;
+            pTest = true;
 
             if(m_Path->makePath()) {
                 m_Path->debug();
+                resetGyro();
                 m_Path->startTraverse(frc::Timer::GetFPGATimestamp());
                 pathState++;
             }
@@ -396,16 +400,13 @@ bool Drivetrain::testPath() {
             if(!tCnt)
                 m_Path->debug();
             bool tdone = m_Path->traverse(frc::Timer::GetFPGATimestamp(),&rVel,&lVel,getGyroReading());
-            frc::SmartDashboard::PutNumber("cnt",tCnt);
-
-            frc::SmartDashboard::PutNumber("tr_R",rVel);
-            frc::SmartDashboard::PutNumber("tr_L",lVel);
             setRightVelocity(rVel);
             setLeftVelocity(lVel);
             tCnt++;
             if(tdone){
                 setRightVelocity(0);
                 setLeftVelocity(0);
+                pTest = false;
             }
             return tdone;
             }
