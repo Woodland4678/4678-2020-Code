@@ -95,4 +95,13 @@ void ControlPanel::deployWheelManipulator(){
 
 void ControlPanel::retractWheelManipulator(){
     controlPanelSolenoid->Set(false);
+    wheelMotor->Disable();
+}
+void ControlPanel::spinControlPanel() {
+  //wheelMotor->GetPIDController().SetReference(2000,rev::ControlType::kPosition,0);
+  wheelMotor->Set(0.5);
+  //if (wheelMotor->GetEncoder().GetPosition() > 1900) {
+  //  return true;
+ // }
+ // return false;
 }

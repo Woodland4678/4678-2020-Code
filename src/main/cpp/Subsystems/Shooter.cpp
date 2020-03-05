@@ -22,8 +22,8 @@
 
     //Shooter PID values
     const double shooter_P = 0.08;
-    const double shooter_I = 0.0001;
-    const double shooter_D = 0.0002;
+    const double shooter_I = 0.0008;
+    const double shooter_D = 0.0008;
 
     const double hood_P = 0.5;
     const double hood_I = 0;

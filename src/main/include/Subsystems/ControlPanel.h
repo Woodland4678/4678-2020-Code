@@ -43,6 +43,7 @@ ControlPanel();
 	void Periodic() override;
 	void deployWheelManipulator();
 	void retractWheelManipulator();
+	void spinControlPanel();
 
 	static constexpr frc::Color m_BlueTarget = frc::Color(0.143, 0.427, 0.429);
 	static constexpr frc::Color m_GreenTarget = frc::Color(0.197, 0.561, 0.240);

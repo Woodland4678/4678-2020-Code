@@ -52,7 +52,7 @@ AutoTenBall();
 	int cnt = 0;
 
 	enum AutonomousSteps {grabTwoBalls, returnToShootFirstVolley, autoAim, shoot, runTrench, returnToShootSecondVolley, finalAutoAim, finalShoot, delay};
-	AutonomousSteps autoStep;
+	AutonomousSteps autoStep = grabTwoBalls;
 	AutonomousSteps nextAutoStep;
 
 private:

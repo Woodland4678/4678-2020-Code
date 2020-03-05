@@ -108,7 +108,7 @@ void Intakes::Periodic() {
     if(m_deployed){
         if(index())
             shiftCells(true);
-        if(cells[4])
+        if(magazineSensorHigh->Get() == false)
             retractIntakes();
     }
 }
