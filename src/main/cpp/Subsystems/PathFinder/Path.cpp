@@ -134,6 +134,76 @@ bool PathFinder::traverse(double time, double *rightOut, double *leftOut, double
     *leftOut += g_mod;
     //TODO: These signs may have to be swapped.
 
+    m_Traj.segments[m_traverseCount].velR = *rightOut;
+    m_Traj.segments[m_traverseCount].velL = *leftOut;
+    
+    printf("\nT,%i,%f,%f,%f",m_traverseCount,degree,gyroReading,err);
+
+    /*printf("\nR,%i,%f,%f,%f,%f",m_traverseCount,m_R_Traj.segments[m_traverseCount].vel,\
+        m_R_Traj.segments[m_traverseCount].acc,\
+        m_R_Traj.segments[m_traverseCount].x,\
+        m_R_Traj.segments[m_traverseCount].y\
+        );
+
+    printf("\nL,%i,%f,%f,%f,%f",m_traverseCount,m_L_Traj.segments[m_traverseCount].vel,\
+        m_L_Traj.segments[m_traverseCount].acc,\
+        m_L_Traj.segments[m_traverseCount].x,\
+        m_L_Traj.segments[m_traverseCount].y\
+        );*/
+
+    return false;
+}
+
+bool PathFinder::inverse_traverse(double time, double *rightOut, double *leftOut, double gyroReading){
+	changeInTime = time - startTime;
+	double tmr100 = changeInTime * 100;
+	int tmr = (int)tmr100;
+	if((tmr % 2) != 0)
+		tmr--;
+	int m_traverseCount = m_segmentCount - (tmr - ((tmr / 2) + 1));
+	
+    //Calculate the target encoder positions for both left and right using segments
+    if(m_traverseCount <= 0)
+        return true;
+
+    if(m_L_Traj.segments[m_traverseCount].x < 0){
+        *leftOut = m_L_Traj.segments[m_traverseCount].vel;
+    }
+    else
+        *leftOut = -m_L_Traj.segments[m_traverseCount].vel;
+
+    if(m_R_Traj.segments[m_traverseCount].x < 0){
+        *rightOut = m_R_Traj.segments[m_traverseCount].vel;
+    }
+    else
+        *rightOut = -m_R_Traj.segments[m_traverseCount].vel;
+
+    //Gyro Modifications
+    //Calculate error
+    double degree = m_Traj.segments[m_traverseCount].heading * (180 / M_PI);
+    if(m_Traj.segments[m_traverseCount].x < 0){
+        degree -= 180;
+        degree *= -1;
+    }
+    if(degree > 180)
+        degree -= 360;
+    double err = gyroReading - (-degree);
+    gyroIaccum += err;
+    double g_mod = m_Config.gryo_p * err + m_Config.gryo_i * gyroIaccum;
+
+    //Modify left and right power
+    *rightOut += g_mod;
+    *leftOut -= g_mod;
+	
+	//Swap direction
+    if(m_Traj.segments[m_traverseCount].velR != 0){
+	    *rightOut = -m_Traj.segments[m_traverseCount].velR;
+        *leftOut = -m_Traj.segments[m_traverseCount].velL;
+    }
+    else{
+        *rightOut *= -1;
+        *leftOut *= -1;
+    }
     
     printf("\nT,%i,%f,%f,%f",m_traverseCount,degree,gyroReading,err);
 
@@ -200,6 +270,8 @@ bool PathFinder::tra_FormTrajectory(double startPower, int wayStart, double endP
     m_Traj.segments[0].acc = 0;
     m_Traj.segments[0].jerk = 0;
     m_Traj.segments[0].dt = m_Config.cycleTime;
+    m_Traj.segments[0].velR = 0;
+    m_Traj.segments[0].velL = 0;
 
     int last = 0;
 
@@ -246,6 +318,8 @@ bool PathFinder::tra_FormTrajectory(double startPower, int wayStart, double endP
         m_Traj.segments[i].acc = (m_Traj.segments[i].vel - m_Traj.segments[last].vel) / m_Config.cycleTime;
         m_Traj.segments[i].jerk = (m_Traj.segments[i].acc - m_Traj.segments[last].acc) / m_Config.cycleTime;
         m_Traj.segments[i].dt = m_Config.cycleTime;
+        m_Traj.segments[i].velR = 0;
+        m_Traj.segments[i].velL = 0;
 
         last = i;
     }

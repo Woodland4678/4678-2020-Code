@@ -380,7 +380,8 @@ bool Drivetrain::testPath() {
             //printf("\nStarting Path Weaving");
             m_Path->createNewPath();
             m_Path->addWayPoint(0.0,0.0,0.0);
-            m_Path->addWayPoint(3,-1,0); //2 meters x direction
+            m_Path->addWayPoint(-2,-1,0); //2 meters x direction
+            m_Path->addWayPoint(-4,-1,0); //2 meters x direction
             tCnt = 0;
             pTest = true;
 
@@ -406,10 +407,39 @@ bool Drivetrain::testPath() {
             if(tdone){
                 setRightVelocity(0);
                 setLeftVelocity(0);
-                pTest = false;
+                pathState = 2;
+            }
+            }
+            break;
+        case 2://Reverse through the same path
+            //Reset the timer
+            //printf("\nStarting Path Weaving");
+            m_Path->createNewPath();
+            m_Path->addWayPoint(0.0,0.0,0.0);
+            m_Path->addWayPoint(2,0,0); //2 meters x direction
+            m_Path->addWayPoint(4,-1,0); //2 meters x direction
+            tCnt = 0;
+            pTest = true;
+
+            if(m_Path->makePath()) {
+                m_Path->startTraverse(frc::Timer::GetFPGATimestamp());
+                pathState++;
+            }
+            break;
+        case 3:
+            //inverse_traverse will run backwards
+            //  Should end up in the same place it started assuming it ran throught the path forwards already
+            //  Keep in mind the build up in error, so it could be off slightly
+            bool tdone = m_Path->traverse(frc::Timer::GetFPGATimestamp(),&rVel,&lVel,getGyroReading());
+            setRightVelocity(rVel);
+            setLeftVelocity(lVel);
+            tCnt++;
+            if(tdone){
+                setRightVelocity(0);
+                setLeftVelocity(0);
+                pTest = true;
             }
             return tdone;
-            }
             break;
     }
     return false;
