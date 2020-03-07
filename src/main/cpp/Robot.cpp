@@ -103,8 +103,7 @@ void Robot::TeleopPeriodic() {
     }
 
 	if (oi->getDriverGamepad()->GetPOV() == 90){
-		//6826
-		shooter->SetShooterSpeed(4000);
+		drivetrain->testPath();
 	} else if (oi->getDriverGamepad()->GetPOV() == 180) {
 		shooter->SetShooterSpeed(4000);
 	} else if (oi->getDriverGamepad()->GetPOV() == 270) {

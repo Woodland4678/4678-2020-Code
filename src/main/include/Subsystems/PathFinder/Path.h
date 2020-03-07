@@ -72,6 +72,9 @@ private:
         double dt;
         double x;
         double y;
+
+        double velR;
+        double velL;
     }tpSeg;
 
     typedef struct TrajectorObject {
@@ -121,6 +124,7 @@ public:
     void copySegment(int idx);
 
     bool traverse(double time, double *rightOut, double *leftOut, double gyroReading);
+    bool inverse_traverse(double time, double *rightOut, double *leftOut, double gyroReading);
 	void startTraverse(double time);
 
 

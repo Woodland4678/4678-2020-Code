@@ -24,12 +24,12 @@ RotationControl::RotationControl(): frc::Command() {
 
 // Called just before this Command runs the first time
 void RotationControl::Initialize() {
-
+    done = false;
 }
 
 // Called repeatedly when this Command is scheduled to run
 void RotationControl::Execute() {
-
+    Robot::controlPanel->spinControlPanel();
 }
 
 // Make this return true when this Command no longer needs to run execute()
