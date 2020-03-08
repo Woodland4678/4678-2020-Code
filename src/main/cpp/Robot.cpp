@@ -105,7 +105,7 @@ void Robot::TeleopPeriodic() {
 	if (oi->getDriverGamepad()->GetPOV() == 90){
 		drivetrain->testPath();
 	} else if (oi->getDriverGamepad()->GetPOV() == 180) {
-		shooter->SetShooterSpeed(4000);
+		shooter->SetShooterSpeed(5500);
 	} else if (oi->getDriverGamepad()->GetPOV() == 270) {
 		drivetrain->setLimeLED(limeRead);
 		limeRead ^= 1;
