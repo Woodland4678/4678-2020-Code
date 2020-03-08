@@ -99,7 +99,7 @@ bool PathFinder::traverse(double time, double *rightOut, double *leftOut, double
         return true;
 
     double degree = m_Traj.segments[m_traverseCount].heading * (180 / M_PI);
-    if((degree > 90) &&(degree < 180)){
+    if((degree > 90) &&(degree < 270)){
         *leftOut = m_L_Traj.segments[m_traverseCount].vel;
         *rightOut = m_R_Traj.segments[m_traverseCount].vel;
     }
