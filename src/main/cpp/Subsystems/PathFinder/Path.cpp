@@ -125,8 +125,8 @@ bool PathFinder::traverse(double time, double *rightOut, double *leftOut, double
         *leftOut += g_mod;
     }
     else{
-        *rightOut += g_mod;
-        *leftOut -= g_mod;
+        *rightOut -= g_mod;
+        *leftOut += g_mod;
     }
 
     m_Traj.segments[m_traverseCount].velR = *rightOut;
