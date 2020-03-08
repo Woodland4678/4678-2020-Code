@@ -98,18 +98,15 @@ bool PathFinder::traverse(double time, double *rightOut, double *leftOut, double
     if(m_traverseCount > m_segmentCount)
         return true;
 
-    if(m_L_Traj.segments[m_traverseCount].x < 0){
+    if((m_Traj.segments[m_traverseCount].heading > 90) &&(m_Traj.segments[m_traverseCount].heading < 180)){
         *leftOut = m_L_Traj.segments[m_traverseCount].vel;
-    }
-    else
-        *leftOut = -m_L_Traj.segments[m_traverseCount].vel;
-
-    if(m_R_Traj.segments[m_traverseCount].x < 0){
         *rightOut = m_R_Traj.segments[m_traverseCount].vel;
     }
-    else
+    else{
+        *leftOut = -m_L_Traj.segments[m_traverseCount].vel;
         *rightOut = -m_R_Traj.segments[m_traverseCount].vel;
-
+    }
+    
     //Gyro Modifications
     //Calculate error
     double degree = m_Traj.segments[m_traverseCount].heading * (180 / M_PI);
