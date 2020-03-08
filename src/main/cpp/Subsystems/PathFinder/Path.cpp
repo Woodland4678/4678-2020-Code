@@ -100,8 +100,8 @@ bool PathFinder::traverse(double time, double *rightOut, double *leftOut, double
 
     double degree = m_Traj.segments[m_traverseCount].heading * (180 / M_PI);
     if((degree > 90) &&(degree < 270)){
-        *leftOut = m_L_Traj.segments[m_traverseCount].vel;
-        *rightOut = m_R_Traj.segments[m_traverseCount].vel;
+        *leftOut = m_R_Traj.segments[m_traverseCount].vel;
+        *rightOut = m_L_Traj.segments[m_traverseCount].vel;
     }
     else{
         *leftOut = -m_L_Traj.segments[m_traverseCount].vel;
@@ -132,7 +132,7 @@ bool PathFinder::traverse(double time, double *rightOut, double *leftOut, double
     m_Traj.segments[m_traverseCount].velR = *rightOut;
     m_Traj.segments[m_traverseCount].velL = *leftOut;
     
-    //printf("\nT,%i,%f,%f,%f",m_traverseCount,degree,gyroReading,err);
+    printf("\nT,%i,%f,%f,%f,%f,%f,%f,%f",m_traverseCount,degree,gyroReading,err,g_mod,gyroIaccum,*rightOut,*leftOut);
 
     /*printf("\nR,%i,%f,%f,%f,%f",m_traverseCount,m_R_Traj.segments[m_traverseCount].vel,\
         m_R_Traj.segments[m_traverseCount].acc,\

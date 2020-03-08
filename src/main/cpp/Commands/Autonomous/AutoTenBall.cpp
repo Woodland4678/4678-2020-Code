@@ -27,12 +27,13 @@ void AutoTenBall::Initialize() {
     path1->createNewPath();
     path1->addWayPoint(0, 0, 0);  // X is in front of robot, -X is behind, -Y is left, +Y is right
     path1->addWayPoint(1.2, 0, 0); //2.44, 0, 0 - meters
-    path1->addWayPoint(2.42, 0.7, 40.5); //2.44, 0, 0 - meters
+    path1->addWayPoint(2.39, 0.7, 42.5); //2.44, 0, 0 - meters
     path1->makePath();
 
     path2 = new PathFinder(0.02,2,2,1,0.7112);
     path2->createNewPath();
     path2->addWayPoint(2.42, 0.7, 40.5);
+    path2->addWayPoint(1.2, 0, 0);
     path2->addWayPoint(0,0,0);
     path2->makePath();
 
@@ -61,11 +62,11 @@ void AutoTenBall::Execute() {
         case grabTwoBalls:
             //Robot::shooter->SetShooterSpeed(2500); //will need to adjust shooter speed in the future
             Robot::shooter->goToHoodPos(0); //will need to adjust this value
-            //Robot::intakes->deployIntakes();
+            Robot::intakes->deployIntakes();
             if (path1->traverse(frc::Timer::GetFPGATimestamp(),&rVel,&lVel,Robot::drivetrain->getGyroReading())) {   // cnt = how far down the path are you, right velocity (m/s), left velocity (m/s)
-                autoStep = delay;
-                nextAutoStep = returnToShootFirstVolley;
-                delayCount = 10;
+                //autoStep = returnToShootFirstVolley;
+                //nextAutoStep = returnToShootFirstVolley;
+                //delayCount = 10;
                 path2->startTraverse(frc::Timer::GetFPGATimestamp());
                 rVel = 0;
                 lVel = 0;
