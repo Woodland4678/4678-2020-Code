@@ -102,8 +102,11 @@ void Intakes::Periodic() {
     if(m_deployed){
         if(index())
             shiftCells(true);
-        if(magazineSensorHigh->Get() == false)
+        if(magazineSensorHigh->Get() == false){
+            stopMag();
+            resetMagazinePosition();
             retractIntakes();
+        }
     }
 }
 
@@ -198,6 +201,11 @@ double Intakes::getMagazinePosition(){
     return magazine->GetEncoder().GetPosition();
 }
 
+void Intakes::resetMagazinePosition(){
+    m_idxState = 0;
+    magazine->GetEncoder().SetPosition(0);
+}
+
 void Intakes::setCellPosition(int position){
     cells[position] = true;
 }
@@ -227,6 +235,10 @@ bool Intakes::shiftCells(bool firstCell){
     return true;
 }
 
+bool Intakes::getMagHighSensor(){
+    return magazineSensorHigh->Get() ^ 1;
+}
+
 bool Intakes::index(bool c1Override){
     if(m_idxState > 0)
         m_idxcnt++;
@@ -249,6 +261,10 @@ bool Intakes::index(bool c1Override){
             double err = abs(INDEXENCODER - getMagazinePosition());
             if(err < INDEXERROR)
                 m_idxState = INDEXCOMPLETE;
+            }
+            if(m_idxcnt > 50){
+                magazine->GetEncoder().SetPosition(0);
+                m_idxState = INDEXWAITING;
             }
             break;
         case INDEXCOMPLETE:

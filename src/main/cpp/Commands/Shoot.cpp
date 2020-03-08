@@ -28,11 +28,24 @@ const double acceptableAimError = 2;
 void Shoot::Initialize() {
     done = false;
     shootState = 0;
+    count = 0;
 }
 
 // Called repeatedly when this Command is scheduled to run
 void Shoot::Execute() {
-    Robot::intakes->spinMag();
+    if(shootState == 0)
+        Robot::shooter->SetShooterSpeed(4500);
+    shootState++;
+    if(shootState >= 75)
+        Robot::intakes->spinMag();
+    if(shootState > 125){
+        if(!Robot::intakes->getMagHighSensor())
+            count++;
+        else
+            count = 0;
+    }
+    if(count > 20)
+        done = true;
     // switch (shootState){
     //     case 0:
     //         if (abs(Robot::drivetrain->autoAim(Robot::shooter->getAimTarget())) <= acceptableAimError){
@@ -67,6 +80,7 @@ bool Shoot::IsFinished() {
 void Shoot::End() {
     Robot::shooter->stopShooter();
     Robot::intakes->stopMag();
+    Robot::intakes->resetMagazinePosition();
 }
 
 // Called when another command which requires one or more of the same
