@@ -112,19 +112,11 @@ bool PathFinder::traverse(double time, double *rightOut, double *leftOut, double
 
     //Gyro Modifications
     //Calculate error
-
-    //-y
-    //  heading around 360
-
-    //-x
-    //  head is 180
     double degree = m_Traj.segments[m_traverseCount].heading * (180 / M_PI);
-    if(m_Traj.segments[m_traverseCount].x < 0){
-        degree -= 180;
-        degree *= -1;
-    }
-    if(degree > 180)
+    if(degree >= 270)
         degree -= 360;
+    else if((degree > 90)&&(degree < 270))
+        degree -= 180;
     double err = gyroReading - (-degree);
     gyroIaccum += err;
     double g_mod = m_Config.gryo_p * err + m_Config.gryo_i * gyroIaccum;
@@ -132,12 +124,11 @@ bool PathFinder::traverse(double time, double *rightOut, double *leftOut, double
     //Modify left and right power
     *rightOut -= g_mod;
     *leftOut += g_mod;
-    //TODO: These signs may have to be swapped.
 
     m_Traj.segments[m_traverseCount].velR = *rightOut;
     m_Traj.segments[m_traverseCount].velL = *leftOut;
     
-    printf("\nT,%i,%f,%f,%f",m_traverseCount,degree,gyroReading,err);
+    //printf("\nT,%i,%f,%f,%f",m_traverseCount,degree,gyroReading,err);
 
     /*printf("\nR,%i,%f,%f,%f,%f",m_traverseCount,m_R_Traj.segments[m_traverseCount].vel,\
         m_R_Traj.segments[m_traverseCount].acc,\
@@ -181,12 +172,10 @@ bool PathFinder::inverse_traverse(double time, double *rightOut, double *leftOut
     //Gyro Modifications
     //Calculate error
     double degree = m_Traj.segments[m_traverseCount].heading * (180 / M_PI);
-    if(m_Traj.segments[m_traverseCount].x < 0){
-        degree -= 180;
-        degree *= -1;
-    }
-    if(degree > 180)
+    if(degree >= 270)
         degree -= 360;
+    else if((degree > 90)&&(degree < 270))
+        degree -= 180;
     double err = gyroReading - (-degree);
     gyroIaccum += err;
     double g_mod = m_Config.gryo_p * err + m_Config.gryo_i * gyroIaccum;
@@ -205,7 +194,7 @@ bool PathFinder::inverse_traverse(double time, double *rightOut, double *leftOut
         *leftOut *= -1;
     }
     
-    printf("\nT,%i,%f,%f,%f",m_traverseCount,degree,gyroReading,err);
+    //printf("\nT,%i,%f,%f,%f",m_traverseCount,degree,gyroReading,err);
 
     /*printf("\nR,%i,%f,%f,%f,%f",m_traverseCount,m_R_Traj.segments[m_traverseCount].vel,\
         m_R_Traj.segments[m_traverseCount].acc,\

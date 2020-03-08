@@ -24,22 +24,26 @@ AutoAim::AutoAim(): frc::Command() {
 
 // Called just before this Command runs the first time
 void AutoAim::Initialize() {
-
+    done = false;
+    Robot::drivetrain->setLimeLED(true);
 }
 
 // Called repeatedly when this Command is scheduled to run
 void AutoAim::Execute() {
-    double err = Robot::drivetrain->autoAim(0);
+    if(!Robot::oi->getDriverGamepad()->GetRawButton(7))
+        done = true;
+    if(Robot::drivetrain->ml_ValidTarget)
+        double err = Robot::drivetrain->autoAim(-6.5);
 }
 
 // Make this return true when this Command no longer needs to run execute()
 bool AutoAim::IsFinished() {
-    return false;
+    return done;
 }
 
 // Called once after isFinished returns true
 void AutoAim::End() {
-
+    Robot::drivetrain->setLimeLED(false);
 }
 
 // Called when another command which requires one or more of the same

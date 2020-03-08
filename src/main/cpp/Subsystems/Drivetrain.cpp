@@ -462,11 +462,13 @@ double Drivetrain::autoAim(double target){
 	double current = ml_targetHorizontial;//Target position calculated in periodic function
     //TODO: If we lose the target, reset the I value
 
-	error = target - (current / 30); //Divided by 30 because that value is the maximum given the resolution of the camera
+	error = (target / 30) - (current / 30); //Divided by 30 because that value is the maximum given the resolution of the camera
 	double pValue = mAA_p*error;
 	iValue += mAA_i*(error);
 	double dValue = mAA_d*(past - current);
 	double totalValue = pValue + iValue + dValue;
+
+    printf("\nAA,%f,%f,%f,%f,%f",current,error,pValue,iValue,totalValue);
 
 	if(totalValue > 0.8)
 		totalValue = 0.8;

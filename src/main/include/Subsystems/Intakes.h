@@ -112,6 +112,8 @@ Intakes();
 	double getMagazinePosition();
 	//index: brings a cell into the magazine once one is detected. Continuously call until it returns true.
 	bool index(bool c1Override = false);
+	bool getMagHighSensor();
+	void resetMagazinePosition();
 
 	//--Power Cell Functions--
 	//setCellPosition: Set position in magazine to true (ball)
