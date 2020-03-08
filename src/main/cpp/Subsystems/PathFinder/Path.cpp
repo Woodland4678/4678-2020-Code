@@ -119,8 +119,15 @@ bool PathFinder::traverse(double time, double *rightOut, double *leftOut, double
     double g_mod = m_Config.gryo_p * err + m_Config.gryo_i * gyroIaccum;
 
     //Modify left and right power
-    *rightOut -= g_mod;
-    *leftOut += g_mod;
+    degree = m_Traj.segments[m_traverseCount].heading * (180 / M_PI);
+    if((degree > 90) &&(degree < 270)){
+        *rightOut -= g_mod;
+        *leftOut += g_mod;
+    }
+    else{
+        *rightOut += g_mod;
+        *leftOut -= g_mod;
+    }
 
     m_Traj.segments[m_traverseCount].velR = *rightOut;
     m_Traj.segments[m_traverseCount].velL = *leftOut;
