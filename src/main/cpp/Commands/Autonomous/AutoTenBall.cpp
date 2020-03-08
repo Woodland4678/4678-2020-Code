@@ -32,7 +32,7 @@ void AutoTenBall::Initialize() {
 
     path2 = new PathFinder(0.02,2,2,1,0.7112);
     path2->createNewPath();
-    path2->addWayPoint(-2.42, -0.7, 40.5);
+    path2->addWayPoint(2.42, 0.7, 40.5);
     path2->addWayPoint(0,0,0);
     path2->makePath();
 
