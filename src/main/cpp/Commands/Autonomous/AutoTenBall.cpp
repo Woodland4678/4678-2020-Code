@@ -23,16 +23,16 @@ AutoTenBall::AutoTenBall(): frc::Command() {
 
 // Called just before this Command runs the first time
 void AutoTenBall::Initialize() {
-    path1 = new PathFinder(0.02,3,2,1,0.7112);  // cycle time (s), max velocity (m/s), max acceleration (m/s^2), max jerk (m/s^3), distance between wheels (m)
+    path1 = new PathFinder(0.02,2,2,1,0.7112);  // cycle time (s), max velocity (m/s), max acceleration (m/s^2), max jerk (m/s^3), distance between wheels (m)
     path1->createNewPath();
     path1->addWayPoint(0, 0, 0);  // X is in front of robot, -X is behind, -Y is left, +Y is right
-    path1->addWayPoint(1.85, 0, 0); //2.44, 0, 0 - meters
-    path1->addWayPoint(2.42, 0.32, 40.5); //2.44, 0, 0 - meters
+    path1->addWayPoint(1.2, 0, 0); //2.44, 0, 0 - meters
+    path1->addWayPoint(2.42, 0.7, 40.5); //2.44, 0, 0 - meters
     path1->makePath();
 
     path2 = new PathFinder(0.02,2,2,1,0.7112);
     path2->createNewPath();
-    path2->addWayPoint(2.42, 0.32, 40.5);
+    path2->addWayPoint(-2.42, -0.7, 40.5);
     path2->addWayPoint(0,0,0);
     path2->makePath();
 
@@ -66,7 +66,7 @@ void AutoTenBall::Execute() {
                 autoStep = delay;
                 nextAutoStep = returnToShootFirstVolley;
                 delayCount = 10;
-                path1->startTraverse(frc::Timer::GetFPGATimestamp());
+                path2->startTraverse(frc::Timer::GetFPGATimestamp());
                 rVel = 0;
                 lVel = 0;
                 cnt = 0;
