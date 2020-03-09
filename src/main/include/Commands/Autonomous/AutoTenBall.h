@@ -45,7 +45,9 @@ AutoTenBall();
 	double finishY = 0;
 
 	int delayCount = 0;
+	int failCount = 0;
 
+	double currentFPGATime = 0;
 
 	double rVel = 0;
 	double lVel = 0;
