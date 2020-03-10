@@ -112,9 +112,9 @@ leftEncoder->SetPIDSourceType(frc::PIDSourceType::kRate);
 
     m_Path = new PathFinder(0.02,3,2,1,0.7112);
 
-    mAA_p = 0.29;
-    mAA_i = 0.001;
-	mAA_d = 0;
+    mAA_p = 0.40; //29
+    mAA_i = 0.008; //0.001
+	mAA_d = 0.03;
 
     frc::SmartDashboard::PutNumber("Left Set Speed",0);
     frc::SmartDashboard::PutNumber("Right Set Speed",0);
@@ -396,7 +396,7 @@ bool Drivetrain::testPath() {
             if(m_Path->makePath()) {
                 m_Path->debug();
                 resetGyro();
-                m_Path->startTraverse(frc::Timer::GetFPGATimestamp());
+                //m_Path->startTraverse(frc::Timer::GetFPGATimestamp());
                 pathState++;
             }
             else{
@@ -408,15 +408,15 @@ bool Drivetrain::testPath() {
             {
             if(!tCnt)
                 m_Path->debug();
-            bool tdone = m_Path->traverse(frc::Timer::GetFPGATimestamp(),&rVel,&lVel,getGyroReading());
+            //bool tdone = m_Path->traverse(frc::Timer::GetFPGATimestamp(),&rVel,&lVel,getGyroReading());
             setRightVelocity(rVel);
             setLeftVelocity(lVel);
             tCnt++;
-            if(tdone){
+            //if(tdone){
                 setRightVelocity(0);
                 setLeftVelocity(0);
                 pathState = 2;
-            }
+            //}
             }
             break;
         case 2://Reverse through the same path
@@ -430,7 +430,7 @@ bool Drivetrain::testPath() {
             pTest = true;
 
             if(m_Path->makePath()) {
-                m_Path->startTraverse(frc::Timer::GetFPGATimestamp());
+                //m_Path->startTraverse(frc::Timer::GetFPGATimestamp());
                 pathState++;
             }
             break;
@@ -442,12 +442,12 @@ bool Drivetrain::testPath() {
             setRightVelocity(rVel);
             setLeftVelocity(lVel);
             tCnt++;
-            if(tdone){
+            //if(tdone){
                 setRightVelocity(0);
                 setLeftVelocity(0);
                 pTest = true;
-            }
-            return tdone;
+            //}
+            return true;
             break;
     }
     return false;
@@ -464,11 +464,16 @@ double Drivetrain::autoAim(double target){
 
 	error = (target / 30) - (current / 30); //Divided by 30 because that value is the maximum given the resolution of the camera
 	double pValue = mAA_p*error;
-	iValue += mAA_i*(error);
+    if(std::abs(error) < (5.0/30.0)){
+	    iValue += (error);
+    }
+    else{
+        iValue = 0;
+    }
 	double dValue = mAA_d*(past - current);
-	double totalValue = pValue + iValue + dValue;
+	double totalValue = pValue + (mAA_i*iValue) + dValue;
 
-    printf("\nAA,%f,%f,%f,%f,%f",current,error,pValue,iValue,totalValue);
+    printf("\nAA,%f,%f,%f,%f,%f",current,std::abs(error),pValue,iValue,totalValue);
 
 	if(totalValue > 0.8)
 		totalValue = 0.8;
