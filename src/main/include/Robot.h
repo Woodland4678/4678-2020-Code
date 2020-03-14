@@ -50,7 +50,6 @@ static std::shared_ptr<Intakes> intakes;
 	void AutonomousPeriodic() override;
 	void TeleopInit() override;
 	void TeleopPeriodic() override;
-	void determineAutoSwitches();
 
 	bool pathdone = false;
 	bool limeRead = false;

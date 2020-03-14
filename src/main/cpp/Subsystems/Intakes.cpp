@@ -13,7 +13,7 @@
 #include <frc/SmartDashboard/SmartDashboard.h>
 
 const double INTAKESPEED = 0.70;
-const double MAGSPEED = -1;
+const double MAGSPEED = -0.8;
 const double INDEXENCODER = -20;
 const double INDEXERROR = 0.5;
 const int REVMIDDLECNT = 3;

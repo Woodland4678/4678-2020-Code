@@ -86,6 +86,7 @@ Drivetrain();
 	bool getLimeValidObject();
 	double getLimeHorizontial();
 	double getLimeVertical();
+	double calculateLimeDist();
 
 	//Advanced Control Functions
 	bool turnAmount(double degrees, int direction, double vel, double acc);
@@ -101,7 +102,8 @@ Drivetrain();
 	int traverseCnt = 0;
 	double encPrevLeft,encPrevRight,encLeft,encRight;
 
-	PathFinder *m_Path;
+	//PathFinder *m_Path;
+	PathFinder *A_Paths[7];
 	bool testPath();
 	void initPath();
 	bool pTest = false;
@@ -112,9 +114,6 @@ Drivetrain();
 
 	//Auto Controls
 	double autoAim(double target);
-	double mAA_p = 0;
-	double mAA_d = 0;
-	double mAA_i = 0;
 
 	double r_Set = 0;
 	double l_Set = 0;

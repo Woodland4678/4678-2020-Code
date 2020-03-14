@@ -29,23 +29,7 @@ void ConfigureShot::Initialize() {
 
 // Called repeatedly when this Command is scheduled to run
 void ConfigureShot::Execute() {
-    switch (m_shotSetting){
-        case 2: //long shot
-            Robot::shooter->configAimTarget(0);
-            Robot::shooter->configShootVel(1000);
-            Robot::shooter->configHoodTarget(1000);
-        break;
-        case 3: //medium shot
-            Robot::shooter->configAimTarget(0);
-            Robot::shooter->configShootVel(1000);
-            Robot::shooter->configHoodTarget(750);
-        break;
-        case 4: //close shot
-            Robot::shooter->configAimTarget(0);
-            Robot::shooter->configShootVel(1000);
-            Robot::shooter->configHoodTarget(0);
-        break;    
-    }
+    
 }
 
 // Make this return true when this Command no longer needs to run execute()

@@ -39,7 +39,9 @@ Shooter();
 	void InitDefaultCommand() override;
 	void Periodic() override;
 
-	void SetShooterSpeed(double speed);
+	void SetShooterSpeed(double rpm, int val = 0); 
+	void SetShooterVelocity(double rpm);
+	void SetShooterPower(double pwr);
 	void stopShooter();
 
 	//void hoodLow();
@@ -47,21 +49,18 @@ Shooter();
 	//void hoodHigh();
 	double readEncoderPos();
 	bool goToHoodPos(double target);
-	bool shoot();
-
-	void configHoodTarget(double target);
-	void configAimTarget(double target);
-	void configShootVel(double target);
+	bool shoot(double targetRPM);
+	double m_OriginalTime = 0;
+	double m_TotalTime = 0;
+	double m_Counter = 0;
 	
-	double getHoodTarget();
-	double getAimTarget();
-	double getTargetShootVel();
 	double getShooterVel();
 	double getVelError();
 
 	double findHoodError();
 
 	int count = 0;
+	int m_shootcnt = 0;
 	int delayCount = 0;
 	int shootState = 0;
 	int shootDelay = 0;

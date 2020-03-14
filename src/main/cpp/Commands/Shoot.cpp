@@ -33,8 +33,8 @@ void Shoot::Initialize() {
 
 // Called repeatedly when this Command is scheduled to run
 void Shoot::Execute() {
-    if(shootState == 0)
-        Robot::shooter->SetShooterSpeed(4500);
+    /*if(shootState == 0)
+        Robot::shooter->SetShooterSpeed(5500);
     shootState++;
     if(shootState >= 75)
         Robot::intakes->spinMag();
@@ -45,7 +45,8 @@ void Shoot::Execute() {
             count = 0;
     }
     if(count > 20)
-        done = true;
+        done = true;*/
+    Robot::shooter->shoot(6500);
     // switch (shootState){
     //     case 0:
     //         if (abs(Robot::drivetrain->autoAim(Robot::shooter->getAimTarget())) <= acceptableAimError){
@@ -81,6 +82,7 @@ void Shoot::End() {
     Robot::shooter->stopShooter();
     Robot::intakes->stopMag();
     Robot::intakes->resetMagazinePosition();
+    Robot::shooter->shootState = 0;
 }
 
 // Called when another command which requires one or more of the same
