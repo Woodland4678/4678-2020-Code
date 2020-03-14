@@ -94,6 +94,8 @@ void Robot::TeleopInit() {
 
 void Robot::TeleopPeriodic() {
 
+	climber->setClimberPower(oi->getOperatorGamepad()->GetY());
+	climber->setShimmyMotor(oi->getOperatorGamepad()->GetRawAxis(2));
 	if (oi->getOperatorGamepad()->GetPOV() == 90) {
         shooter->stopShooter();
     } else if (oi->getOperatorGamepad()->GetPOV() == 180) {
@@ -101,6 +103,14 @@ void Robot::TeleopPeriodic() {
     }  else if (oi->getOperatorGamepad()->GetPOV() == 270) {
         shooter->SetShooterSpeed(5500);
     }
+	if (oi->getOperatorGamepad()->GetRawButton(5)) {
+		climber->shiftToExtendMode();
+	} else if (oi->getOperatorGamepad()->GetRawButton(6)) {
+		climber->shiftToWinchMode();
+	} else if (oi->getOperatorGamepad()->GetRawButton(9)) {
+		climber->lock();
+	}
+	
 
 	if (oi->getDriverGamepad()->GetPOV() == 90){
 		drivetrain->testPath();

@@ -29,24 +29,22 @@ void Shoot::Initialize() {
     done = false;
     shootState = 0;
     count = 0;
+    aimCount = 0;
+    isAimed = false;
+    Robot::drivetrain->setLimeLED(true);
 }
 
 // Called repeatedly when this Command is scheduled to run
 void Shoot::Execute() {
-    /*if(shootState == 0)
-        Robot::shooter->SetShooterSpeed(5500);
-    shootState++;
-    if(shootState >= 75)
-        Robot::intakes->spinMag();
-    if(shootState > 125){
-        if(!Robot::intakes->getMagHighSensor())
-            count++;
-        else
-            count = 0;
-    }
-    if(count > 20)
-        done = true;*/
-    Robot::shooter->shoot(6500);
+    if (Robot::drivetrain->autoAim(0) < 1) {
+        aimCount++;
+    } 
+    if (aimCount > 25) {
+        isAimed = true;
+    };
+    if(isAimed)
+        Robot::shooter->shoot(6500);
+    
     // switch (shootState){
     //     case 0:
     //         if (abs(Robot::drivetrain->autoAim(Robot::shooter->getAimTarget())) <= acceptableAimError){
@@ -83,6 +81,11 @@ void Shoot::End() {
     Robot::intakes->stopMag();
     Robot::intakes->resetMagazinePosition();
     Robot::shooter->shootState = 0;
+    shootState = 0;
+    count = 0;
+    aimCount = 0;
+    isAimed = false;
+    Robot::drivetrain->setLimeLED(false);
 }
 
 // Called when another command which requires one or more of the same

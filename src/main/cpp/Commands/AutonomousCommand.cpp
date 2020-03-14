@@ -26,6 +26,7 @@ AutonomousCommand::AutonomousCommand(): frc::Command() {
 void AutonomousCommand::Initialize() {
     autoMode = 0;
     Robot::drivetrain->shiftUp();
+    Robot::intakes->deployIntakes();
     	// switch 1 determines where the robot is starting from against the wall
     // see AutoScenarioHelpers.cpp  transformConsoleSwitch1 - values there must match below
 	if (Robot::oi->getAutoSwitch()->GetRawButton(14)) {

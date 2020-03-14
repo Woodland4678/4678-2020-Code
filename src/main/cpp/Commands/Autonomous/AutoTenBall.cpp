@@ -25,32 +25,32 @@ AutoTenBall::AutoTenBall(): frc::Command() {
 
 // Called just before this Command runs the first time
 void AutoTenBall::Initialize() {
-    path1 = new PathFinder(0.02,2,2,1,0.7112);  // cycle time (s), max velocity (m/s), max acceleration (m/s^2), max jerk (m/s^3), distance between wheels (m)
+    path1 = new PathFinder(0.02,4,3.5,1,0.7112);  // cycle time (s), max velocity (m/s), max acceleration (m/s^2), max jerk (m/s^3), distance between wheels (m)
     path1->createNewPath();
     path1->addWayPoint(0, 0, 0);  // X is in front of robot, -X is behind, -Y is left, +Y is right
-    path1->addWayPoint(1.2, 0, 0); //2.44, 0, 0 - meters
-    path1->addWayPoint(2.39, 0.7, 50); //2.44, 0, 0 - meters
+    path1->addWayPoint(0.5, 0, 0); //2.44, 0, 0 - meters
+    path1->addWayPoint(2.3, 0.8, 50); //2.44, 0, 0 - meters
     path1->makePath();
 
-    path2 = new PathFinder(0.02,2,2,1,0.7112);
+    path2 = new PathFinder(0.02,4,3.5,1,0.7112);
     path2->createNewPath();
-    path2->addWayPoint(2.39, 0.7, 50);
+    path2->addWayPoint(2.3, 0.8, 50);
     //path2->addWayPoint(1.2, 0, 0);
-    path2->addWayPoint(0.5,0,0);
+    path2->addWayPoint(0.5,0.5,0);
     path2->makePath();
 
-    path3 = new PathFinder(0.02,2,2,1,0.7112);
+    path3 = new PathFinder(0.02,2,1.5,1,0.7112); //3.5, 2
     path3->createNewPath();
     path3->addWayPoint(0.5, 0, 0);
-    path3->addWayPoint(2.35,-1,0); //-1.7 for y if we are right in the middle of the target
-    path3->addWayPoint(5, -1,0); //6.57 is for full trench length)
+    path3->addWayPoint(2,-1.15,0); //-1.7 for y if we are right in the middle of the target
+    path3->addWayPoint(4, -1.15,0); //6.57 is for full trench length)
     path3->makePath();
 
-    path4 = new PathFinder(0.02,3,2,1,0.7112);
+    path4 = new PathFinder(0.02,4.5,4,1,0.7112);
     path4->createNewPath();
-    path4->addWayPoint(6.57, -1.7, 0);
-    path4->addWayPoint(4,-1.7,0);
-    path4->addWayPoint(0,0,0);
+    path4->addWayPoint(4, -1, 0);
+    path4->addWayPoint(1,1.5,0);
+    //path4->addWayPoint(0,0,0);
     path4->makePath();
 
     cnt = 0;
@@ -64,13 +64,13 @@ void AutoTenBall::Execute() {
         case grabTwoBalls:
             //Robot::shooter->SetShooterSpeed(2500); //will need to adjust shooter speed in the future
             Robot::shooter->goToHoodPos(0); //will need to adjust this value
-            Robot::intakes->deployIntakes();
+            //Robot::intakes->deployIntakes();
             if (path1->traverse(frc::Timer::GetFPGATimestamp(),&rVel,&lVel,Robot::drivetrain->getGyroReading())) {   // cnt = how far down the path are you, right velocity (m/s), left velocity (m/s)
                 failCount++;
-                if (Robot::intakes->countCells() == 5 || failCount > 50) {
+                if (Robot::intakes->countCells() == 5 || failCount > 100) {
                     autoStep = delay;
                     nextAutoStep = returnToShootFirstVolley;
-                    Robot::intakes->retractIntakes();
+                    //Robot::intakes->retractIntakes();
                     delayCount = 5;
                     failCount = 0;
                 }
@@ -88,9 +88,9 @@ void AutoTenBall::Execute() {
             Robot::shooter->SetShooterSpeed(5750);
             if (path2->traverse(frc::Timer::GetFPGATimestamp(),&rVel,&lVel,Robot::drivetrain->getGyroReading())) {   // cnt = how far down the path are you, right velocity (m/s), left velocity (m/s)
             //if (path1->inverse_traverse(frc::Timer::GetFPGATimestamp(),&rVel,&lVel,Robot::drivetrain->getGyroReading())) {   // cnt = how far down the path are you, right velocity (m/s), left velocity (m/s)
-                autoStep = delay;
-                delayCount = 5;
-                nextAutoStep = autoAim;
+                autoStep = autoAim;
+                //delayCount = 50;
+                //nextAutoStep = runTrench;
                 Robot::drivetrain->setLimeLED(true);
                 rVel = 0;
                 lVel = 0;
@@ -101,7 +101,7 @@ void AutoTenBall::Execute() {
             cnt++;
         break;
         case autoAim:
-            if (std::abs(Robot::drivetrain->autoAim(-4.2)) < ALLOWABLE_AUTOAIM_ERROR) {
+            if (std::abs(Robot::drivetrain->autoAim(0)) < ALLOWABLE_AUTOAIM_ERROR) {
                 cnt++;
             } else {
                 cnt = 0;
@@ -110,18 +110,20 @@ void AutoTenBall::Execute() {
                 autoStep = shoot;
                 Robot::drivetrain->setLimeLED(false);
                 Robot::drivetrain->setRightPower(0);
-                Robot::drivetrain->setRightPower(0);
+                Robot::drivetrain->setLeftPower(0);
                 failCount = 0;
                 cnt = 0;
             }
         break;
         case shoot:
             Robot::intakes->spinMag();
+            //Robot::intakes->deployIntakes();
             failCount++;
             if (failCount > 80) {
                 Robot::shooter->stopShooter();
                 Robot::intakes->stopMag();
                 failCount = 0;
+                path3->startTraverse(frc::Timer::GetFPGATimestamp());
                 autoStep = runTrench;
             }
 
@@ -129,10 +131,11 @@ void AutoTenBall::Execute() {
         case runTrench:
             Robot::intakes->deployIntakes();
             if (path3->traverse(frc::Timer::GetFPGATimestamp(),&rVel,&lVel,Robot::drivetrain->getGyroReading())) {   // cnt = how far down the path are you, right velocity (m/s), left velocity (m/s)
-                autoStep = returnToShootSecondVolley;
-                //delayCount = 10;
-                //nextAutoStep = returnToShootSecondVolley;
-                path4->startTraverse(frc::Timer::GetFPGATimestamp());
+                autoStep = delay;
+                delayCount = 25;
+                nextAutoStep = returnToShootSecondVolley;
+                Robot::shooter->SetShooterSpeed(5750);
+                //path4->startTraverse(frc::Timer::GetFPGATimestamp());
                 rVel = 0;
                 lVel = 0;
                 cnt = 0;
@@ -142,6 +145,7 @@ void AutoTenBall::Execute() {
             cnt++;
         break;
         case returnToShootSecondVolley:
+
             if (path4->traverse(frc::Timer::GetFPGATimestamp(),&rVel,&lVel,Robot::drivetrain->getGyroReading())) {   // cnt = how far down the path are you, right velocity (m/s), left velocity (m/s)
                 autoStep = finalAutoAim;
                 Robot::drivetrain->setLimeLED(true);
@@ -154,7 +158,7 @@ void AutoTenBall::Execute() {
             cnt++;
         break;
         case finalAutoAim:
-            if (std::abs(Robot::drivetrain->autoAim(-4.2)) < ALLOWABLE_AUTOAIM_ERROR) {
+            if (std::abs(Robot::drivetrain->autoAim(0)) < ALLOWABLE_AUTOAIM_ERROR) {
                 cnt++;
             } else {
                 cnt = 0;
