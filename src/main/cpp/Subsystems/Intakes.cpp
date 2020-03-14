@@ -12,7 +12,7 @@
 #include "Subsystems/Intakes.h"
 #include <frc/SmartDashboard/SmartDashboard.h>
 
-const double INTAKESPEED = 0.70;
+const double INTAKESPEED = 0.90;
 const double MAGSPEED = -1;
 const double INDEXENCODER = -20;
 const double INDEXERROR = 0.5;

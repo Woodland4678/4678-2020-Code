@@ -115,7 +115,7 @@ void Shooter::Periodic() {
 void Shooter::SetShooterSpeed(double speed) {
     frc::SmartDashboard::PutNumber("Shooter Set Point",speed);
     shooterMotor1->Set(ControlMode::Velocity,(speed * 4096) / 600);
-    //shooterMotor1->Set(speed);
+    //shooterMotor1->Set(1);
 }
 
 void Shooter::stopShooter(){
