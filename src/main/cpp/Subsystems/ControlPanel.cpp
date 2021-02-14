@@ -99,7 +99,7 @@ void ControlPanel::retractWheelManipulator(){
 }
 void ControlPanel::spinControlPanel() {
   //wheelMotor->GetPIDController().SetReference(2000,rev::ControlType::kPosition,0);
-  wheelMotor->Set(0.5);
+  //wheelMotor->Set(0.5);
   //if (wheelMotor->GetEncoder().GetPosition() > 1900) {
   //  return true;
  // }

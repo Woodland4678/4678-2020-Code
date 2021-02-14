@@ -24,17 +24,17 @@ DeployClimber::DeployClimber(): frc::Command() {
 
 // Called just before this Command runs the first time
 void DeployClimber::Initialize() {
-
+    done = false;
 }
 
 // Called repeatedly when this Command is scheduled to run
 void DeployClimber::Execute() {
-
+    done = Robot::climber->extend();
 }
 
 // Make this return true when this Command no longer needs to run execute()
 bool DeployClimber::IsFinished() {
-    return false;
+    return done;
 }
 
 // Called once after isFinished returns true

@@ -51,23 +51,37 @@ void AutoTrenchRun::Initialize() {
     // path1->makePath();
     // path1->debug();
 
-    path1 = new PathFinder(0.02,4,2,1,0.7112);  // cycle time (s), max velocity (m/s), max acceleration (m/s^2), max jerk (m/s^3), distance between wheels (m)
-    path1->createNewPath();
-    path1->addWayPoint(0, 0, 0);  // X is in front of robot, -X is behind, -Y is left, +Y is right
-    path1->addWayPoint(3, 1.7, 0); //2.35, 1.7, 0 - meters
-    path1->addWayPoint(6.25, 1.7, 0); //2.44, 0, 0 - meters
-    path1->makePath();
-    //path1->debug();
+    //Old Code Here (before skills challenges)//
+    // path1 = new PathFinder(0.02,4,2,1,0.7112);  // cycle time (s), max velocity (m/s), max acceleration (m/s^2), max jerk (m/s^3), distance between wheels (m)
+    // path1->createNewPath();
+    // path1->addWayPoint(0, 0, 0);  // X is in front of robot, -X is behind, -Y is left, +Y is right
+    // path1->addWayPoint(3, 1.7, 0); //2.35, 1.7, 0 - meters
+    // path1->addWayPoint(6.25, 1.7, 0); //2.44, 0, 0 - meters
+    // path1->makePath();
+    // //path1->debug();
 
-    path2 = new PathFinder(0.02,4,4,1,0.7112);
-    path2->createNewPath();
-    path2->addWayPoint(4.16, 0, 0); //6.16, 0, 0
-    path2->addWayPoint(3.5,0,0); //3.5,0,0
-    path2->addWayPoint(0,0,0); //finishX, finishY, 0
-    path2->makePath();
+    // path2 = new PathFinder(0.02,4,4,1,0.7112);
+    // path2->createNewPath();
+    // path2->addWayPoint(4.16, 0, 0); //6.16, 0, 0
+    // path2->addWayPoint(3.5,0,0); //3.5,0,0
+    // path2->addWayPoint(0,0,0); //finishX, finishY, 0
+    // path2->makePath();
+
+    //SKills Challenges Code
+    //0.02,4,2,1,0.7112
+    path1 = new PathFinder(0.02,1.5,1,1,0.7112);  // cycle time (s), max velocity (m/s), max acceleration (m/s^2), max jerk (m/s^3), distance between wheels (m)
+    path1->createNewPath();
+    path1->addWayPoint(0, 0, 0);  // -X is in front of robot, +X is behind, +Y is left, -Y is right
+    path1->addWayPoint(-1.5, 0, 0); //2.35, 1.7, 0 - meters
+    path1->addWayPoint(-2.5, -1, 85);
+    //path1->addWayPoint(-2.3, 0.5, 90);
+    //path1->addWayPoint(-2, 0.5, 0);
+    //path1->addWayPoint(-2, 0.5, 0);
+    path1->makePath();
 
     cnt = 0;
     Robot::drivetrain->resetGyro();
+    autoStep = shoot;
 }
 
 // Called repeatedly when this Command is scheduled to run
@@ -94,19 +108,19 @@ void AutoTrenchRun::Execute() {
         break;
         case runFirstPath:
             if (path1->traverse(frc::Timer::GetFPGATimestamp(),&rVel,&lVel,Robot::drivetrain->getGyroReading())) {   // cnt = how far down the path are you, right velocity (m/s), left velocity (m/s)
-                if (Robot::intakes->countCells() == 5) {
-                    autoStep = pause;
-                }
+                //if (Robot::intakes->countCells() == 5) {
+                    autoStep = finalShoot;
+               // }
                 rVel = 0;
                 lVel = 0;
                 cnt = 0;
-            }
-            if (Robot::intakes->countCells() == 3) {
-                //Robot::intakes->setIntakeSpeed(0.9,0,0.7);
-            }
-            if (Robot::intakes->countCells() == 4) {
-                //Robot::intakes->setIntakeSpeed(0,0.8,0.7);
-            }
+             }
+            // if (Robot::intakes->countCells() == 3) {
+            //     //Robot::intakes->setIntakeSpeed(0.9,0,0.7);
+            // }
+            // if (Robot::intakes->countCells() == 4) {
+            //     //Robot::intakes->setIntakeSpeed(0,0.8,0.7);
+            // }
             Robot::drivetrain->setRightVelocity(rVel);
             Robot::drivetrain->setLeftVelocity(lVel);
             cnt++;
