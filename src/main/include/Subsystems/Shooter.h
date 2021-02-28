@@ -49,7 +49,7 @@ Shooter();
 	//void hoodHigh();
 	double readEncoderPos();
 	bool goToHoodPos(double target);
-	bool shoot(double targetRPM);
+	bool shoot(double targetRPM, bool isAimed, bool manual);
 	double m_OriginalTime = 0;
 	double m_TotalTime = 0;
 	double m_Counter = 0;

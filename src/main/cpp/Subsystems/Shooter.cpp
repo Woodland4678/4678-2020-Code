@@ -189,7 +189,7 @@ double Shooter::getVelError(){
     return abs(shootTargetVel - getShooterVel()); 
 }
 
-bool Shooter::shoot(double targetRPM){
+bool Shooter::shoot(double targetRPM, bool isAimed, bool manual){
     switch(shootState) {
         case 0:
             {
@@ -223,9 +223,15 @@ bool Shooter::shoot(double targetRPM){
             }
             break;
         case 3:
-            Robot::intakes->spinMag();
+            if(isAimed && !manual) {
+                Robot::intakes->spinMag();
+            } else if(isAimed && manual && Robot::oi->getDriverGamepad()->GetRawButton(9)) {
+                if(Robot::intakes->index(true)) {
+                    Robot::intakes->shiftCells(true);
+                }
+            }
             m_Counter++;
-            if(m_Counter > 125){
+            if(m_Counter > 150 && !manual){
                 shootState = 4;
                 m_Counter = 0;
             }

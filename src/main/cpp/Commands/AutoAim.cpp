@@ -30,10 +30,21 @@ void AutoAim::Initialize() {
 
 // Called repeatedly when this Command is scheduled to run
 void AutoAim::Execute() {
+    if(Robot::drivetrain->getLimeVertical() > 5) {
+        Robot::shooter->disableHood();
+    } 
+    //medium shot
+    else if(Robot::drivetrain->getLimeVertical() <= 5) {
+        Robot::shooter->goToHoodPos(-2000);
+    } 
+    //far shot
+    else if(Robot::drivetrain->getLimeVertical() <= -10) {
+        Robot::shooter->goToHoodPos(-3000);
+    }
     if(!Robot::oi->getDriverGamepad()->GetRawButton(7))
         done = true;
     if(Robot::drivetrain->ml_ValidTarget)
-        double err = Robot::drivetrain->autoAim(-6.5);
+        double err = Robot::drivetrain->autoAim(0);
 }
 
 // Make this return true when this Command no longer needs to run execute()
@@ -44,6 +55,7 @@ bool AutoAim::IsFinished() {
 // Called once after isFinished returns true
 void AutoAim::End() {
     Robot::drivetrain->setLimeLED(false);
+    Robot::shooter->disableHood();
 }
 
 // Called when another command which requires one or more of the same

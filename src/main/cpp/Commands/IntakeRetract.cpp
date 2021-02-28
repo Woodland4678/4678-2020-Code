@@ -24,26 +24,32 @@ IntakeRetract::IntakeRetract(): frc::Command() {
 
 // Called just before this Command runs the first time
 void IntakeRetract::Initialize() {
-
+    done = false;
+    cnt = 0;
 }
 
 // Called repeatedly when this Command is scheduled to run
 void IntakeRetract::Execute() {
+    done = Robot::intakes->moveCellsToTop();
+    if (cnt > 100) {
+        done = true;
+    }
     Robot::intakes->retractIntakes();
+    cnt++;
 }
 
 // Make this return true when this Command no longer needs to run execute()
 bool IntakeRetract::IsFinished() {
-    return true;
+    return done;
 }
 
 // Called once after isFinished returns true
 void IntakeRetract::End() {
-
+    Robot::intakes->stopMag();
 }
 
 // Called when another command which requires one or more of the same
 // subsystems is scheduled to run
 void IntakeRetract::Interrupted() {
-
+    End();
 }

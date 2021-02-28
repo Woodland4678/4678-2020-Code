@@ -32,23 +32,45 @@ void Shoot::Initialize() {
     count = 0;
     aimCount = 0;
     isAimed = false;
+    shootRPM = 0;
     Robot::drivetrain->setLimeLED(true);
 }
 
 // Called repeatedly when this Command is scheduled to run
 void Shoot::Execute() {
-    Robot::shooter->goToHoodPos(-3000);
+    //close shot
+    
+    
     if(!isAimed){
-        if (Robot::drivetrain->autoAim(0) < 1) {
+        if (Robot::drivetrain->autoAim(0) < 0.5) {
             aimCount++;
         }
+        if(Robot::drivetrain->getLimeVertical() > 8) {
+            Robot::shooter->disableHood();
+            shootRPM = 3750;
+            Robot::intakes->setMagSpeed(-0.55);
+        } 
+        //medium shot
+        else if(Robot::drivetrain->getLimeVertical() <= 8 && Robot::drivetrain->getLimeVertical() > -4.75) {
+            //old cells -2450 and 5500 works from 8.5ft to 15ft
+            Robot::shooter->goToHoodPos(-3060); //
+            shootRPM = 5300;
+            Robot::intakes->setMagSpeed(-0.8);
+        }                                  
+        //far shot                                                                      
+        else if(Robot::drivetrain->getLimeVertical() <= -4.75) {
+            Robot::shooter->goToHoodPos(-3450);
+            shootRPM = 5500;
+            Robot::intakes->setMagSpeed(-0.3);
+        }
     } 
-    if (aimCount > 25) {
+    if (aimCount > 55) {
         //Set drive wheels to zero power here to stop drifting
+        Robot::drivetrain->setLeftPower(0);
+        Robot::drivetrain->setRightPower(0);
         isAimed = true;
     };
-    if(isAimed)
-        Robot::shooter->shoot(5500);
+    Robot::shooter->shoot(shootRPM, isAimed, false);
     
     // switch (shootState){
     //     case 0:

@@ -106,6 +106,8 @@ Intakes();
 
 	void clearMagEncoder();
 
+	//to change the speed we shoot the cells
+	void setMagSpeed(double speed);
 	//spinMag: Sets the magazine to spin. The speed is set by a const found at the top of intakes.cpp
 	void spinMag();
 	//stopMag: Stops the magazine from spinning
@@ -120,6 +122,8 @@ Intakes();
 	bool index(bool c1Override = false);
 	bool getMagHighSensor();
 	void resetMagazinePosition();
+	//for moving cells to top after intake raised
+	bool moveCellsToTop();
 
 	//--Power Cell Functions--
 	//setCellPosition: Set position in magazine to true (ball)

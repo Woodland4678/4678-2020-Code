@@ -13,7 +13,7 @@
 #include <frc/SmartDashboard/SmartDashboard.h>
 
 const double INTAKESPEED = 0.70;
-const double MAGSPEED = -1;
+double MAGSPEED = -0.9;
 const double INDEXENCODER = -15.5;
 const double INDEXERROR = 0.5;
 const int REVMIDDLECNT = 3;
@@ -305,7 +305,19 @@ bool Intakes::index(bool c1Override){
     }
     return false;
 }
-
+bool Intakes::moveCellsToTop() {
+    if(!getMagHighSensor()) {
+        setMagSpeed(-0.4);
+        spinMag();
+        return false;
+    } else {
+        stopMag();
+        return true;
+    }
+}
+void Intakes::setMagSpeed(double speed) {
+    MAGSPEED = speed;
+}
 
 //--Old Code--
 /*bool Intakes::index(){
