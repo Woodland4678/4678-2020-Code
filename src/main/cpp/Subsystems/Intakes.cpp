@@ -118,8 +118,10 @@ void Intakes::Periodic() {
         }
 
         if(magazineSensorHigh->Get() == true){
-            if(index())
+            if(index()) {
                 shiftCells(true);
+                cellNum++;
+            }
         }
         else
             stopMag();
@@ -128,6 +130,12 @@ void Intakes::Periodic() {
             stopMag();
             resetMagazinePosition();
             retractIntakes();
+        } else if (cellNum == 3) {
+            if(moveCellsToTop()) {
+                m_deployed = false;
+            }
+            stopIntakes();
+            intakeSolenoid->Set(false);
         }
     }
 }
@@ -145,6 +153,9 @@ void Intakes::deployIntakes(){
     m_deployed = true;
     setIntakeSpeed(INTAKESPEED,INTAKESPEED,INTAKESPEED);
     intakeSolenoid->Set(true);
+    if(getMagHighSensor()) {
+        cellNum = 0;
+    }
 }
 
 void Intakes::retractIntakes(){

@@ -61,6 +61,14 @@ void AutonomousCommand::Initialize() {
         autonomousMode = new AutoTrenchRun();
     } else if (autoMode == 2) {
         autonomousMode = new AutoTenBall();
+    } else if (autoMode == 3) {
+        autonomousMode = new Slalom();
+    } else if (autoMode == 4) {
+        autonomousMode = new BarrelRacing();
+    } else if (autoMode ==5 ) {
+        autonomousMode = new BouncePath();
+    } else if (autoMode == 6) {
+        autonomousMode = new GalacticSearch();
     }
 	frc::SmartDashboard::PutNumber("Auto Mode", autoMode);
 	// frc::SmartDashboard::PutNumber("Auto Side", autoSide);

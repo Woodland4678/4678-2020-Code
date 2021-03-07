@@ -53,6 +53,8 @@ std::shared_ptr<rev::CANSparkMax> rightRoller;
 	int cellCounter = 0;
 	bool slowRight = false;
 
+	int cellNum = 0;
+
 	bool cells[5];
 
 	enum {
