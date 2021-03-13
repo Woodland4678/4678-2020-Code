@@ -83,7 +83,11 @@ void Slalom::Execute() {
 }
 
 // Called once the command ends or is interrupted.
-void Slalom::End() {}
+void Slalom::End() {
+  Robot::drivetrain->setRightVelocity(0);
+  Robot::drivetrain->setLeftVelocity(0);
+
+}
 
 // Returns true when the command should end.
 bool Slalom::IsFinished() { 
