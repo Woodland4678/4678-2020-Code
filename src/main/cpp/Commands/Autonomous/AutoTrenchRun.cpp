@@ -69,7 +69,7 @@ void AutoTrenchRun::Initialize() {
 
     //SKills Challenges Code
     //0.02,4,2,1,0.7112
-    path1 = new PathFinder(0.02,1.5,1,1,0.7112);  // cycle time (s), max velocity (m/s), max acceleration (m/s^2), max jerk (m/s^3), distance between wheels (m)
+    path1 = new PathFinder(0.02,0,1.5,1.5,1,1,0.7112);  // cycle time (s), max velocity (m/s), max acceleration (m/s^2), max jerk (m/s^3), distance between wheels (m)
     path1->createNewPath();
     path1->addWayPoint(0, 0, 0);  // -X is in front of robot, +X is behind, +Y is left, -Y is right
     path1->addWayPoint(-1.5, 0, 0); //2.35, 1.7, 0 - meters

@@ -14,7 +14,7 @@ BarrelRacing::BarrelRacing(): frc::Command() {
 
 // Called when the command is initially scheduled.
 void BarrelRacing::Initialize() {
-    path1 = new PathFinder(0.02,2,1.5,1,0.7112);  // cycle time (s), max velocity (m/s), max acceleration (m/s^2), max jerk (m/s^3), distance between wheels (m)
+    path1 = new PathFinder(0.02,0,2,1.5,1.5,1,0.7112);  // cycle time (s), max velocity (m/s), max acceleration (m/s^2), max jerk (m/s^3), distance between wheels (m)
     path1->createNewPath();
     path1->addWayPoint(-1.050, 2.281, 0);  // -X is in front of robot, X is behind, Y is left, -Y is right
     path1->addWayPoint(-3.819, 2.245, 0); //2.44, 0, 0 - meters

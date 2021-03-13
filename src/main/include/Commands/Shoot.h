@@ -39,6 +39,7 @@ Shoot();
 	bool isHoodInPos = false;
 	bool done = false;
 	bool isAimed = false;
+	double aimToNum = 0;
 
 	double shootRPM = 0;
 

@@ -33,6 +33,8 @@ class Slalom
   bool IsFinished() override;
 
   PathFinder *path1;
+  PathFinder *path2;
+  PathFinder *path3;
   int autoStep = 0;
   double rVel = 0;
 	double lVel = 0;

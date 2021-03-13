@@ -2,8 +2,10 @@
 #include "Subsystems/PathFinder/Path.h"
 #include "Subsystems/LidarViewer.h"
 
-PathFinder::PathFinder(double cycleTime, double maxSpeed, double maxAccel, double maxJerk, double wheelBase){
+PathFinder::PathFinder(double cycleTime, double startPower, double endPower, double maxSpeed, double maxAccel, double maxJerk, double wheelBase){
     m_Config.cycleTime = cycleTime;
+	m_Config.StartPower = startPower;
+	m_Config.EndPower = endPower;
     m_Config.MaxSpeed = maxSpeed;
     m_Config.MaxAccel = maxAccel;
     m_Config.MaxJerk = maxJerk;
@@ -47,7 +49,7 @@ bool PathFinder::makePath(){
 
     m_traverseCount = 0;
 
-    bool success = tra_FormTrajectory(0.0, 0, 0.0, m_WayPoint_Cnt-1);
+    bool success = tra_FormTrajectory(m_Config.StartPower, 0, m_Config.EndPower, m_WayPoint_Cnt-1);
 
     
 
@@ -95,24 +97,25 @@ bool PathFinder::traverse(double time, double *rightOut, double *leftOut, double
     //Calculate the target encoder positions for both left and right using segments
     if(m_traverseCount < 0)
         return false;
-    if(m_traverseCount > m_segmentCount)
+    if(m_traverseCount >= m_segmentCount)
         return true;
 
     double degree = m_Traj.segments[m_traverseCount].heading * (180 / M_PI);
-    if((degree > 90) &&(degree < 270)){
+    if((degree > 92) &&(degree < 270)){
         *leftOut = m_R_Traj.segments[m_traverseCount].vel;
         *rightOut = m_L_Traj.segments[m_traverseCount].vel;
     }
     else{
-        *leftOut = -m_L_Traj.segments[m_traverseCount].vel;
-        *rightOut = -m_R_Traj.segments[m_traverseCount].vel;
+		printf("\nlol here");
+        *leftOut = m_L_Traj.segments[m_traverseCount].vel;
+        *rightOut = m_R_Traj.segments[m_traverseCount].vel;
     }
     
     //Gyro Modifications
     //Calculate error
     if(degree >= 270)
         degree -= 360;
-    else if((degree > 90)&&(degree < 270))
+    else if((degree > 92)&&(degree < 270))
         degree -= 180;
     double err = gyroReading - (-degree);
     gyroIaccum += err;
@@ -120,14 +123,14 @@ bool PathFinder::traverse(double time, double *rightOut, double *leftOut, double
 
     //Modify left and right power
     degree = m_Traj.segments[m_traverseCount].heading * (180 / M_PI);
-    if((degree > 90) &&(degree < 270)){
+    //if((degree > 90) &&(degree < 270)){
         *rightOut -= g_mod;
         *leftOut += g_mod;
-    }
+    /*}
     else{
         *rightOut -= g_mod;
         *leftOut += g_mod;
-    }
+    }*/
 
     m_Traj.segments[m_traverseCount].velR = *rightOut;
     m_Traj.segments[m_traverseCount].velL = *leftOut;

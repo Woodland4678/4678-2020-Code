@@ -14,7 +14,7 @@ GalacticSearch::GalacticSearch(): frc::Command() {
 
 // Called when the command is initially scheduled.
 void GalacticSearch::Initialize() {
-    path1 = new PathFinder(0.02,2,1.5,1,0.7112);  // cycle time (s), max velocity (m/s), max acceleration (m/s^2), max jerk (m/s^3), distance between wheels (m)
+    path1 = new PathFinder(0.02,0,2,2,1.5,1,0.7112);  // cycle time (s), max velocity (m/s), max acceleration (m/s^2), max jerk (m/s^3), distance between wheels (m)
     path1->createNewPath();
     path1->addWayPoint(-1.113, 2.098, 0);  // -X is in front of robot, X is behind, Y is left, +Y is right
     path1->addWayPoint(-2.119, 2.516, -45); //2.44, 0, 0 - meters
@@ -22,13 +22,13 @@ void GalacticSearch::Initialize() {
     path1->addWayPoint(-4.358, 1.252, 60);
     path1->makePath();
 
-    path2 = new PathFinder(0.02,2,1.5,1,0.7112);  // cycle time (s), max velocity (m/s), max acceleration (m/s^2), max jerk (m/s^3), distance between wheels (m)
+    path2 = new PathFinder(0.02,0,2,2,1.5,1,0.7112);  // cycle time (s), max velocity (m/s), max acceleration (m/s^2), max jerk (m/s^3), distance between wheels (m)
     path2->createNewPath();
     path2->addWayPoint(-4.358, 1.252, 60);  // -X is in front of robot, X is behind, Y is left, -Y is right
     path2->addWayPoint(-3.621, 4.393, 45);
     path2->makePath();
 
-    path3 = new PathFinder(0.02,2,1.5,1,0.7112);  // cycle time (s), max velocity (m/s), max acceleration (m/s^2), max jerk (m/s^3), distance between wheels (m)
+    path3 = new PathFinder(0.02,0,2,2,1.5,1,0.7112);  // cycle time (s), max velocity (m/s), max acceleration (m/s^2), max jerk (m/s^3), distance between wheels (m)
     path3->createNewPath();
     path3->addWayPoint(-3.621, 4.393, 45);  // -X is in front of robot, X is behind, Y is left, +Y is right
     path3->addWayPoint(-5.000, 3.592, 45);

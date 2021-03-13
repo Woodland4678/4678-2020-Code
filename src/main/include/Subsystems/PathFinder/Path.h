@@ -22,6 +22,8 @@ private:
     //Basic configuation for the path finder
     typedef struct Configuration {
         double cycleTime;   //Number of seconds between cycles, normally this is just 0.02 which is = to 50Hz
+		double StartPower;
+		double EndPower;
         double MaxSpeed;    //The max speed of the robot
         double MaxAccel;    //The max acceleration of the robot
         double MaxDeaccel;
@@ -104,7 +106,7 @@ private:
 
 
 public:
-    PathFinder(double cycleTime, double maxSpeed, double maxAccel, double maxJerk, double wheelBase);
+    PathFinder(double cycleTime, double startPower, double endPower, double maxSpeed, double maxAccel, double maxJerk, double wheelBase);
 
     bool createNewPath(); //Resets the counts
     bool addWayPoint(double x, double y, double theta);

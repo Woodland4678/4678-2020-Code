@@ -151,10 +151,13 @@ void Intakes::Periodic() {
 //----------------------------------------Intake State Control-------------------------------------
 void Intakes::deployIntakes(){
     m_deployed = true;
-    setIntakeSpeed(INTAKESPEED,INTAKESPEED,INTAKESPEED);
-    intakeSolenoid->Set(true);
-    if(getMagHighSensor()) {
-        cellNum = 0;
+    
+    if(!getMagHighSensor()) {
+        if (cellNum == 3) { 
+            cellNum = 0;
+        }
+        setIntakeSpeed(INTAKESPEED,INTAKESPEED,INTAKESPEED);
+        intakeSolenoid->Set(true);
     }
 }
 
@@ -219,6 +222,9 @@ bool Intakes::getLeftSensor(){
 
 bool Intakes::getRightSensor(){
     return !intakeRightSensor->Get();
+}
+int Intakes::getCellNum() {
+    return cellNum;
 }
 //------------------------------------------Magazine Control---------------------------------------
 void Intakes::spinMag(){
