@@ -335,6 +335,9 @@ bool Intakes::moveCellsToTop() {
 void Intakes::setMagSpeed(double speed) {
     MAGSPEED = speed;
 }
+void Intakes::setCellNum(int num) {
+    cellNum = num;
+}
 
 //--Old Code--
 /*bool Intakes::index(){

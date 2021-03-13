@@ -88,7 +88,7 @@ void Shoot::Execute() {
         Robot::drivetrain->setRightPower(0);
         isAimed = true;
     };
-    Robot::shooter->shoot(shootRPM, isAimed, true);
+    Robot::shooter->shoot(shootRPM, isAimed, false);
     
     // switch (shootState){
     //     case 0:

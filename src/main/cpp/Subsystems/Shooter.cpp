@@ -238,8 +238,10 @@ bool Shooter::shoot(double targetRPM, bool isAimed, bool manual){
             }
             break;
         case 4:
-            if(!Robot::intakes->getMagHighSensor())
+            if(!Robot::intakes->getMagHighSensor()) {
                 m_Counter++;
+                Robot::intakes->setCellNum(0);
+            }
             else
                 m_Counter = 0;
             if(m_Counter > 20){
