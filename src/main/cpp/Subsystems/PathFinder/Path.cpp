@@ -101,41 +101,34 @@ bool PathFinder::traverse(double time, double *rightOut, double *leftOut, double
         return true;
 
     double degree = m_Traj.segments[m_traverseCount].heading * (180 / M_PI);
-    if((degree > 92) &&(degree < 270)){
+    //if((degree > 92) &&(degree < 270)){
         *leftOut = m_R_Traj.segments[m_traverseCount].vel;
         *rightOut = m_L_Traj.segments[m_traverseCount].vel;
-    }
-    else{
-		printf("\nlol here");
-        *leftOut = m_L_Traj.segments[m_traverseCount].vel;
-        *rightOut = m_R_Traj.segments[m_traverseCount].vel;
-    }
+    //}
+    //else{
+    //    *leftOut = m_R_Traj.segments[m_traverseCount].vel;
+    //    *rightOut = m_L_Traj.segments[m_traverseCount].vel;
+    //}
     
     //Gyro Modifications
     //Calculate error
-    if(degree >= 270)
+	gyroReading = 180 - gyroReading;
+    double err = 0;
+	if(degree >= 270){
         degree -= 360;
-    else if((degree > 92)&&(degree < 270))
-        degree -= 180;
-    double err = gyroReading - (-degree);
-    gyroIaccum += err;
-    double g_mod = m_Config.gryo_p * err + m_Config.gryo_i * gyroIaccum;
+	}	
+    err = degree - gyroReading;
+    double g_mod = m_Config.gryo_p * err;
 
     //Modify left and right power
     degree = m_Traj.segments[m_traverseCount].heading * (180 / M_PI);
-    //if((degree > 90) &&(degree < 270)){
-        *rightOut -= g_mod;
-        *leftOut += g_mod;
-    /*}
-    else{
-        *rightOut -= g_mod;
-        *leftOut += g_mod;
-    }*/
+	*rightOut -= g_mod;
+	*leftOut += g_mod;
 
     m_Traj.segments[m_traverseCount].velR = *rightOut;
     m_Traj.segments[m_traverseCount].velL = *leftOut;
     
-    printf("\nT,%i,%f,%f,%f,%f,%f,%f,%f",m_traverseCount,degree,gyroReading,err,g_mod,gyroIaccum,*rightOut,*leftOut);
+    printf("\nT,%i,%f,%f,%f,%f,%f,%f",m_traverseCount,degree,gyroReading,err,g_mod,*rightOut,*leftOut);
 
     /*printf("\nR,%i,%f,%f,%f,%f",m_traverseCount,m_R_Traj.segments[m_traverseCount].vel,\
         m_R_Traj.segments[m_traverseCount].acc,\
