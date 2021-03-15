@@ -45,8 +45,8 @@ void Shoot::Execute() {
         if (Robot::drivetrain->autoAim(aimToNum) < 0.2) {
             aimCount++;
         }
-        if(Robot::drivetrain->getLimeVertical() > 14 && Robot::drivetrain->getLimeVertical() < 21) {
-            Robot::shooter->goToHoodPos(-865);
+        if(Robot::drivetrain->getLimeVertical() >= 14 && Robot::drivetrain->getLimeVertical() < 21) {
+            Robot::shooter->goToHoodPos(-840);
             shootRPM = 4000;
             Robot::intakes->setMagSpeed(-0.9);
             aimToNum = -0.35;
@@ -55,7 +55,7 @@ void Shoot::Execute() {
         else if(Robot::drivetrain->getLimeVertical() <= 30 && Robot::drivetrain->getLimeVertical() > 22) {
             //old cells -2450 and 5500 works from 8.5ft to 15ft
              //
-            Robot::shooter->disableHood();
+            Robot::shooter->goToHoodPos(-100);
             shootRPM = 3750;
             Robot::intakes->setMagSpeed(-0.9);
             aimToNum = 0;
@@ -80,6 +80,11 @@ void Shoot::Execute() {
             shootRPM = 5900;
             Robot::intakes->setMagSpeed(-0.9);
             aimToNum = 1.0;
+        } else {
+            Robot::shooter->goToHoodPos(-1000);
+            shootRPM = 3800;
+            Robot::intakes->setMagSpeed(-0.9);
+            aimToNum = 0;
         }
     } 
     if (aimCount > 55) {
@@ -131,6 +136,7 @@ void Shoot::End() {
     count = 0;
     aimCount = 0;
     isAimed = false;
+    Robot::intakes->setCellNum(0);
     Robot::drivetrain->setLimeLED(false);
 }
 

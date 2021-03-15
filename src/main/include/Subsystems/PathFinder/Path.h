@@ -12,7 +12,7 @@
 
 //#include "frc/WPILib.h"
 
-#define MAX_WAYPOINTS   10  //We don't like using malloc and other dynamic memory, this is the max 
+#define MAX_WAYPOINTS   14  //We don't like using malloc and other dynamic memory, this is the max 
                             //array size for the number of waypoints you can have in a single path
                             //Also the number of splines that can be used
 
@@ -83,7 +83,7 @@ private:
     }tpSeg;
 
     typedef struct TrajectorObject {
-        tpSeg segments[500];
+        tpSeg segments[2000];
         int seg_cnt;
     }tpTrajectory;
 

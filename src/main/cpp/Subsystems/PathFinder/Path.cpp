@@ -102,29 +102,33 @@ bool PathFinder::traverse(double time, double *rightOut, double *leftOut, double
         return true;
 
     double degree = m_Traj.segments[m_traverseCount].heading * (180 / M_PI);
-    //if((degree > 92) &&(degree < 270)){
 	*leftOut = m_R_Traj.segments[m_traverseCount].vel;
 	*rightOut = m_L_Traj.segments[m_traverseCount].vel;
-    //}
-    //else{
-    //    *leftOut = m_R_Traj.segments[m_traverseCount].vel;
-    //    *rightOut = m_L_Traj.segments[m_traverseCount].vel;
-    //}
+    //Heading is always positive 0-360, the gyro however does not
     
     //Gyro Modifications
     //Calculate error
 	gyroReading = 180 - gyroReading;
+	if(gyroReading < 0)
+		gyroReading = (gyroReading + (360 * (float)abs(((int)(gyroReading / 360)))));;
+	if(gyroReading > 360)
+		gyroReading = (gyroReading - (360 * (float)((int)(gyroReading / 360))));
+	if(gyroReading < 0)
+		gyroReading = 360 + gyroReading;
     double err = 0;
-	if(degree >= 270){
-        degree -= 360;
-	}	
+	//if(degree >= 270){
+    //    degree -= 360;
+	//}	
     err = degree - gyroReading;
+	if(err > 180){ //Either we are way off course or header past 0 and is now something like 356
+		err -= 360;
+	}
     double g_mod = m_Traj.segments[m_traverseCount].gyro_p * err;
 
     //Modify left and right power
     degree = m_Traj.segments[m_traverseCount].heading * (180 / M_PI);
-	*rightOut += g_mod;
-	*leftOut -= g_mod;
+	*rightOut -= g_mod;
+	*leftOut += g_mod;
 
     m_Traj.segments[m_traverseCount].velR = *rightOut;
     m_Traj.segments[m_traverseCount].velL = *leftOut;
@@ -252,8 +256,10 @@ bool PathFinder::tra_FormTrajectory(double startPower, int wayStart, double endP
     }*/
 
     //Create trajectory
-    if(mtime > 500)
-        return false;
+    if(mtime > 2000){
+        printf("Path Failure E4: mtime = %f\n",mtime);
+		return false;
+	}
     //The positions of each trajectory need to be initialized, this is what the following code does
     m_Traj.segments[0].pos = 0;
     m_Traj.segments[0].vel = startPower;
@@ -265,7 +271,7 @@ bool PathFinder::tra_FormTrajectory(double startPower, int wayStart, double endP
 
     int last = 0;
 
-    double f1[500];
+    double f1[2000];
     double f2;
     f1[0] = (startPower / adjust_max_power) * f1_length;
     for(int i=0;i<mtime;i++) {
@@ -423,20 +429,26 @@ bool PathFinder::generateSpline(int idx, int way1, int way2) {
     //Calculate length
     m_Splines[idx].distance = sqrt((m_WayPoints[way2].x - m_WayPoints[way1].x)*(m_WayPoints[way2].x - m_WayPoints[way1].x)+(m_WayPoints[way2].y - m_WayPoints[way1].y)*(m_WayPoints[way2].y - m_WayPoints[way1].y));
     //printf("\n    Dist=%f",m_Splines[idx].distance);
-    if(m_Splines[idx].distance == 0)
-        return false;
-
+    if(m_Splines[idx].distance == 0){
+        printf("Path Failure E1: Way1 = %i | Way2 = %i | Distance = %f\n",way1,way2,m_Splines[idx].distance);
+		return false;
+	}
+	
     m_Splines[idx].theta_offset = atan2(m_WayPoints[way2].y - m_WayPoints[way1].y, m_WayPoints[way2].x - m_WayPoints[way1].x);
     m_Splines[idx].theta_S_hat =  angleDiffRadians(m_Splines[idx].theta_offset, m_WayPoints[way1].theta);
     m_Splines[idx].theta_E_hat =  angleDiffRadians(m_Splines[idx].theta_offset, m_WayPoints[way2].theta);
 	m_Splines[idx].gyro_p = m_WayPoints[way2].gyro_p;
     //printf("\n    theta Offset=%f | theta S offset=%f theta E offset=%f| ",m_Splines[idx].theta_offset,m_Splines[idx].theta_S_hat,m_Splines[idx].theta_E_hat);
-    if((fabs(m_Splines[idx].theta_S_hat - (M_PI / 2)) < 0.0001)||(fabs(m_Splines[idx].theta_E_hat - (M_PI / 2)) < 0.0001))
-        return false;
+    if((fabs(m_Splines[idx].theta_S_hat - (M_PI / 2)) < 0.0001)||(fabs(m_Splines[idx].theta_E_hat - (M_PI / 2)) < 0.0001)){
+        printf("Path Failure E2: Way1 = %i | Way2 = %i\n",way1,way2);
+		return false;
+	}
     double dumbVariable = angleDiffRadians(m_Splines[idx].theta_S_hat, m_Splines[idx].theta_E_hat);
     double dumbVariable2 = (M_PI / 2);
-    if(dumbVariable >= dumbVariable2)
-        return false;
+    if(dumbVariable >= dumbVariable2){
+        printf("Path Failure E3: Way1 = %i | Way2 = %i | dumbVariable = %f\n",way1,way2,dumbVariable);
+		return false;
+	}
 
     //Slopes
     m_Splines[idx].m_S_Hat = tan(m_Splines[idx].theta_S_hat);

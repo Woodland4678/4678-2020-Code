@@ -92,7 +92,7 @@ void Intakes::InitDefaultCommand() {
 
 void Intakes::Periodic() {
     frc::SmartDashboard::PutNumber("Mag Amps", magazine->GetOutputCurrent());
-    frc::SmartDashboard::PutNumber("Power Cells", countCells());
+    frc::SmartDashboard::PutNumber("Power Cells", cellNum);
     frc::SmartDashboard::PutNumber("Intake Encoder", getMagazinePosition());
     frc::SmartDashboard::PutBoolean("Intake Deployed", m_deployed);
     frc::SmartDashboard::PutBoolean("Intake Left",getLeftSensor());
@@ -120,7 +120,9 @@ void Intakes::Periodic() {
         if(magazineSensorHigh->Get() == true){
             if(index()) {
                 shiftCells(true);
-                cellNum++;
+                //cellNum++;
+                
+               
             }
         }
         else

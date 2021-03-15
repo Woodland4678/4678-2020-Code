@@ -33,7 +33,7 @@ void Slalom::Initialize() {
     // path1->addWayPoint(-1.775, 2.461, -120,0.007);
     // path1->makePath();
     
-    path1 = new PathFinder(0.02,0,2.1,2.1,2.2,1,0.7112);  // cycle time (s), max velocity (m/s), max acceleration (m/s^2), max jerk (m/s^3), distance between wheels (m)
+    path1 = new PathFinder(0.02,0,1.5,1.5,1.5,1,0.7112);  // cycle time (s), max velocity (m/s), max acceleration (m/s^2), max jerk (m/s^3), distance between wheels (m)
     path1->createNewPath();
     path1->addWayPoint(-1.054,0.6,0, 0.007);
     path1->addWayPoint(-2.286,1.524,-60, 0.007);
@@ -41,13 +41,14 @@ void Slalom::Initialize() {
     path1->addWayPoint(-5.713,2.25,0, 0.007);
     path1->addWayPoint(-6.875,1.521,60, 0.007);
     path1->addWayPoint(-7.621,0.761,0, 0.007);
-    path1->addWayPoint(-8.387,1.252,-89, 0.007);
-    path1->addWayPoint(-7.605,2.285,-178, 0.007);
+    //path1->addWayPoint(-8.004,1.0065,-45, 0.007);
+    path1->addWayPoint(-8.387,1.252,-90, 0.007);
+    path1->addWayPoint(-7.605,2.285,-180, 0.007);
     path1->addWayPoint(-6.857, 1.521, -240, 0.007);
-    path1->addWayPoint(-5.706, 0.802, -180, 0.007);
-    path1->addWayPoint(-3.243, 0.800, -180, 0.007);
-    path1->addWayPoint(-2.293, 1.521, -120, 0.007);
-    path1->addWayPoint(-1.775, 2.461, -120, 0.007);
+    path1->addWayPoint(-5.706, 0.802, -180, 0.025);
+    path1->addWayPoint(-2.75, 0.800, -180, 0.025);
+    path1->addWayPoint(-2.1, 1.521, -120, 0.02);
+    path1->addWayPoint(-1.775, 2.461, -120, 0.02);
     path1->makePath();
 
     //start path 2

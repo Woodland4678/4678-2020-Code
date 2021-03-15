@@ -30,9 +30,9 @@ void IntakeRetract::Initialize() {
 
 // Called repeatedly when this Command is scheduled to run
 void IntakeRetract::Execute() {
-    if (Robot::intakes->getCellNum() == 3) {
+    //if (Robot::intakes->getCellNum() == 3) {
         done = Robot::intakes->moveCellsToTop();
-    }
+    //}
     if (cnt > 100) {
         done = true;
     }
