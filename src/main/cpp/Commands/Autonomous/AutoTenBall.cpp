@@ -27,29 +27,29 @@ AutoTenBall::AutoTenBall(): frc::Command() {
 void AutoTenBall::Initialize() {
     path1 = new PathFinder(0.02,0,4,4,3.5,1,0.7112);  // cycle time (s), max velocity (m/s), max acceleration (m/s^2), max jerk (m/s^3), distance between wheels (m)
     path1->createNewPath();
-    path1->addWayPoint(0, 0, 0);  // X is in front of robot, -X is behind, -Y is left, +Y is right
-    path1->addWayPoint(0.5, 0, 0); //2.44, 0, 0 - meters
-    path1->addWayPoint(2.3, 0.8, 50); //2.44, 0, 0 - meters
+    path1->addWayPoint(0, 0, 0,0.007);  // X is in front of robot, -X is behind, -Y is left, +Y is right
+    path1->addWayPoint(0.5, 0, 0,0.007); //2.44, 0, 0 - meters
+    path1->addWayPoint(2.3, 0.8, 50,0.007); //2.44, 0, 0 - meters
     path1->makePath();
 
     path2 = new PathFinder(0.02,0,4,4,3.5,1,0.7112);
     path2->createNewPath();
-    path2->addWayPoint(2.3, 0.8, 50);
+    path2->addWayPoint(2.3, 0.8, 50,0.007);
     //path2->addWayPoint(1.2, 0, 0);
-    path2->addWayPoint(0.5,0.5,0);
+    path2->addWayPoint(0.5,0.5,0,0.007);
     path2->makePath();
 
     path3 = new PathFinder(0.02,0,2,2,1.5,1,0.7112); //3.5, 2
     path3->createNewPath();
-    path3->addWayPoint(0.5, 0, 0);
-    path3->addWayPoint(2,-1.15,0); //-1.7 for y if we are right in the middle of the target
-    path3->addWayPoint(4, -1.15,0); //6.57 is for full trench length)
+    path3->addWayPoint(0.5, 0, 0,0.007);
+    path3->addWayPoint(2,-1.15,0,0.007); //-1.7 for y if we are right in the middle of the target
+    path3->addWayPoint(4, -1.15,0,0.007); //6.57 is for full trench length)
     path3->makePath();
 
     path4 = new PathFinder(0.02,0,4.5,4.5,4,1,0.7112);
     path4->createNewPath();
-    path4->addWayPoint(4, -1, 0);
-    path4->addWayPoint(1,1.5,0);
+    path4->addWayPoint(4, -1, 0,0.007);
+    path4->addWayPoint(1,1.5,0,0.007);
     //path4->addWayPoint(0,0,0);
     path4->makePath();
 

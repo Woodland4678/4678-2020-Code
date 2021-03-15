@@ -25,12 +25,13 @@ bool PathFinder::createNewPath(){
     return true;
 }
 
-bool PathFinder::addWayPoint(double x, double y, double theta){
+bool PathFinder::addWayPoint(double x, double y, double theta, double gyro_p){
     if(m_WayPoint_Cnt >= MAX_WAYPOINTS)
         return false; //Maximum number of waypoints reached
     m_WayPoints[m_WayPoint_Cnt].x = x;
     m_WayPoints[m_WayPoint_Cnt].y = y;
     m_WayPoints[m_WayPoint_Cnt].theta = theta * M_PI / 180; //Convert to radians
+	m_WayPoints[m_WayPoint_Cnt].gyro_p = gyro_p;
     m_WayPoint_Cnt++;
     return true;
 }
@@ -102,8 +103,8 @@ bool PathFinder::traverse(double time, double *rightOut, double *leftOut, double
 
     double degree = m_Traj.segments[m_traverseCount].heading * (180 / M_PI);
     //if((degree > 92) &&(degree < 270)){
-        *leftOut = m_R_Traj.segments[m_traverseCount].vel;
-        *rightOut = m_L_Traj.segments[m_traverseCount].vel;
+	*leftOut = m_R_Traj.segments[m_traverseCount].vel;
+	*rightOut = m_L_Traj.segments[m_traverseCount].vel;
     //}
     //else{
     //    *leftOut = m_R_Traj.segments[m_traverseCount].vel;
@@ -118,19 +119,19 @@ bool PathFinder::traverse(double time, double *rightOut, double *leftOut, double
         degree -= 360;
 	}	
     err = degree - gyroReading;
-    double g_mod = m_Config.gryo_p * err;
+    double g_mod = m_Traj.segments[m_traverseCount].gyro_p * err;
 
     //Modify left and right power
     degree = m_Traj.segments[m_traverseCount].heading * (180 / M_PI);
-	*rightOut -= g_mod;
-	*leftOut += g_mod;
+	*rightOut += g_mod;
+	*leftOut -= g_mod;
 
     m_Traj.segments[m_traverseCount].velR = *rightOut;
     m_Traj.segments[m_traverseCount].velL = *leftOut;
     
     printf("\nT,%i,%f,%f,%f,%f,%f,%f",m_traverseCount,degree,gyroReading,err,g_mod,*rightOut,*leftOut);
 
-    /*printf("\nR,%i,%f,%f,%f,%f",m_traverseCount,m_R_Traj.segments[m_traverseCount].vel,\
+    printf("\nR,%i,%f,%f,%f,%f",m_traverseCount,m_R_Traj.segments[m_traverseCount].vel,\
         m_R_Traj.segments[m_traverseCount].acc,\
         m_R_Traj.segments[m_traverseCount].x,\
         m_R_Traj.segments[m_traverseCount].y\
@@ -140,7 +141,7 @@ bool PathFinder::traverse(double time, double *rightOut, double *leftOut, double
         m_L_Traj.segments[m_traverseCount].acc,\
         m_L_Traj.segments[m_traverseCount].x,\
         m_L_Traj.segments[m_traverseCount].y\
-        );*/
+        );
 
     return false;
 }
@@ -327,6 +328,7 @@ bool PathFinder::tra_FormTrajectory(double startPower, int wayStart, double endP
                 //Use the current spline to plot this segment
                 double percentage = spline_getPercentageForDistance(cur_spline,cur_pos_relative,10000);
                 m_Traj.segments[i].heading = angleAt(cur_spline, percentage);
+				m_Traj.segments[i].gyro_p = m_Splines[cur_spline].gyro_p;
                 spline_getXY(cur_spline, percentage, &m_Traj.segments[i].x, &m_Traj.segments[i].y);
                 spline_found = true;
             }
@@ -340,6 +342,7 @@ bool PathFinder::tra_FormTrajectory(double startPower, int wayStart, double endP
             }
             else {
                 m_Traj.segments[i].heading = angleAt(m_Spline_Cnt-1, 1.0);
+				m_Traj.segments[i].gyro_p = m_Splines[cur_spline-1].gyro_p;
                 spline_getXY(m_Spline_Cnt-1, 1.0, &m_Traj.segments[i].x, &m_Traj.segments[i].y);
                 spline_found = true;
             }
@@ -426,6 +429,7 @@ bool PathFinder::generateSpline(int idx, int way1, int way2) {
     m_Splines[idx].theta_offset = atan2(m_WayPoints[way2].y - m_WayPoints[way1].y, m_WayPoints[way2].x - m_WayPoints[way1].x);
     m_Splines[idx].theta_S_hat =  angleDiffRadians(m_Splines[idx].theta_offset, m_WayPoints[way1].theta);
     m_Splines[idx].theta_E_hat =  angleDiffRadians(m_Splines[idx].theta_offset, m_WayPoints[way2].theta);
+	m_Splines[idx].gyro_p = m_WayPoints[way2].gyro_p;
     //printf("\n    theta Offset=%f | theta S offset=%f theta E offset=%f| ",m_Splines[idx].theta_offset,m_Splines[idx].theta_S_hat,m_Splines[idx].theta_E_hat);
     if((fabs(m_Splines[idx].theta_S_hat - (M_PI / 2)) < 0.0001)||(fabs(m_Splines[idx].theta_E_hat - (M_PI / 2)) < 0.0001))
         return false;

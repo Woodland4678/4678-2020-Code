@@ -12,7 +12,7 @@
 
 //#include "frc/WPILib.h"
 
-#define MAX_WAYPOINTS   14  //We don't like using malloc and other dynamic memory, this is the max 
+#define MAX_WAYPOINTS   10  //We don't like using malloc and other dynamic memory, this is the max 
                             //array size for the number of waypoints you can have in a single path
                             //Also the number of splines that can be used
 
@@ -38,6 +38,7 @@ private:
         double x;
         double y;
         double theta;
+		double gyro_p;
     }tpWay;
 
     typedef struct SplineObject {
@@ -49,6 +50,7 @@ private:
 
         double distance;
         double theta_offset;
+		double gyro_p;
 
         double theta_S_hat;
         double theta_E_hat;
@@ -77,6 +79,7 @@ private:
 
         double velR;
         double velL;
+		double gyro_p;
     }tpSeg;
 
     typedef struct TrajectorObject {
@@ -109,7 +112,7 @@ public:
     PathFinder(double cycleTime, double startPower, double endPower, double maxSpeed, double maxAccel, double maxJerk, double wheelBase);
 
     bool createNewPath(); //Resets the counts
-    bool addWayPoint(double x, double y, double theta);
+    bool addWayPoint(double x, double y, double theta, double gyro_p);
     
     bool makePath();
     void debug();

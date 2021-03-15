@@ -16,34 +16,34 @@ BouncePath::BouncePath(): frc::Command() {
 void BouncePath::Initialize() {
     path1 = new PathFinder(0.02,0,2,2,1.5,1,0.7112);  // cycle time (s), max velocity (m/s), max acceleration (m/s^2), max jerk (m/s^3), distance between wheels (m)
     path1->createNewPath();
-    path1->addWayPoint(-1.080, 2.275, 0);  // -X is in front of robot, X is behind, Y is left, -Y is right
-    path1->addWayPoint(-1.539, 2.275, 0); //2.44, 0, 0 - meters
-    path1->addWayPoint(-2.286, 3.152, -90); //2.44, 0, 0 - meters
+    path1->addWayPoint(-1.080, 2.275, 0,0.007);  // -X is in front of robot, X is behind, Y is left, -Y is right
+    path1->addWayPoint(-1.539, 2.275, 0,0.007); //2.44, 0, 0 - meters
+    path1->addWayPoint(-2.286, 3.152, -90,0.007); //2.44, 0, 0 - meters
     path1->makePath();
     
     path2 = new PathFinder(0.02,0,2,2,1.5,1,0.7112);  // cycle time (s), max velocity (m/s), max acceleration (m/s^2), max jerk (m/s^3), distance between wheels (m)
     path2->createNewPath();
-    path2->addWayPoint(-2.286, 3.152, -90); 
-    path2->addWayPoint(-3.048, 1.524, -120); 
-    path2->addWayPoint(-3.810, 0.762, -180); 
-    path2->addWayPoint(-4.571, 1.524, -270); 
-    path2->addWayPoint(-4.575, 3.258, -270); 
+    path2->addWayPoint(-2.286, 3.152, -90,0.007); 
+    path2->addWayPoint(-3.048, 1.524, -120,0.007); 
+    path2->addWayPoint(-3.810, 0.762, -180,0.007); 
+    path2->addWayPoint(-4.571, 1.524, -270,0.007); 
+    path2->addWayPoint(-4.575, 3.258, -270,0.007); 
     path2->makePath();
 
     path3 = new PathFinder(0.02,0,2,2,1.5,1,0.7112);  // cycle time (s), max velocity (m/s), max acceleration (m/s^2), max jerk (m/s^3), distance between wheels (m)
     path3->createNewPath();
-    path3->addWayPoint(-4.575, 3.258, -270); 
-    path3->addWayPoint(-4.571, 1.524, -270); 
-    path3->addWayPoint(-5.336, 0.762, -360); 
-    path3->addWayPoint(-6.096, 0.762, -360); 
-    path3->addWayPoint(-6.858, 1.524, -450); 
-    path3->addWayPoint(-6.858, 3.186, -450); 
+    path3->addWayPoint(-4.575, 3.258, -270,0.007); 
+    path3->addWayPoint(-4.571, 1.524, -270,0.007); 
+    path3->addWayPoint(-5.336, 0.762, -360,0.007); 
+    path3->addWayPoint(-6.096, 0.762, -360,0.007); 
+    path3->addWayPoint(-6.858, 1.524, -450,0.007); 
+    path3->addWayPoint(-6.858, 3.186, -450,0.007); 
     path3->makePath();
 
     path4 = new PathFinder(0.02,0,2,2,1.5,1,0.7112);  // cycle time (s), max velocity (m/s), max acceleration (m/s^2), max jerk (m/s^3), distance between wheels (m)
     path4->createNewPath();
-    path4->addWayPoint(-6.858, 3.186, -450); 
-    path4->addWayPoint(-7.277, 2.261, -480); 
+    path4->addWayPoint(-6.858, 3.186, -450,0.007); 
+    path4->addWayPoint(-7.277, 2.261, -480,0.007); 
     path4->makePath();
 
     cnt = 0;

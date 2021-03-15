@@ -16,24 +16,24 @@ GalacticSearch::GalacticSearch(): frc::Command() {
 void GalacticSearch::Initialize() {
     path1 = new PathFinder(0.02,0,2,2,1.5,1,0.7112);  // cycle time (s), max velocity (m/s), max acceleration (m/s^2), max jerk (m/s^3), distance between wheels (m)
     path1->createNewPath();
-    path1->addWayPoint(-1.113, 2.098, 0);  // -X is in front of robot, X is behind, Y is left, +Y is right
-    path1->addWayPoint(-2.119, 2.516, -45); //2.44, 0, 0 - meters
-    path1->addWayPoint(-3.755, 2.259, 60);
-    path1->addWayPoint(-4.358, 1.252, 60);
+    path1->addWayPoint(-1.113, 2.098, 0,0.007);  // -X is in front of robot, X is behind, Y is left, +Y is right
+    path1->addWayPoint(-2.119, 2.516, -45,0.007); //2.44, 0, 0 - meters
+    path1->addWayPoint(-3.755, 2.259, 60,0.007);
+    path1->addWayPoint(-4.358, 1.252, 60,0.007);
     path1->makePath();
 
     path2 = new PathFinder(0.02,0,2,2,1.5,1,0.7112);  // cycle time (s), max velocity (m/s), max acceleration (m/s^2), max jerk (m/s^3), distance between wheels (m)
     path2->createNewPath();
-    path2->addWayPoint(-4.358, 1.252, 60);  // -X is in front of robot, X is behind, Y is left, -Y is right
-    path2->addWayPoint(-3.621, 4.393, 45);
+    path2->addWayPoint(-4.358, 1.252, 60,0.007);  // -X is in front of robot, X is behind, Y is left, -Y is right
+    path2->addWayPoint(-3.621, 4.393, 45,0.007);
     path2->makePath();
 
     path3 = new PathFinder(0.02,0,2,2,1.5,1,0.7112);  // cycle time (s), max velocity (m/s), max acceleration (m/s^2), max jerk (m/s^3), distance between wheels (m)
     path3->createNewPath();
-    path3->addWayPoint(-3.621, 4.393, 45);  // -X is in front of robot, X is behind, Y is left, +Y is right
-    path3->addWayPoint(-5.000, 3.592, 45);
-    path3->addWayPoint(-5.591, 3.132, 45);
-    path3->addWayPoint(-8.107, 1.065, 45);
+    path3->addWayPoint(-3.621, 4.393, 45,0.007);  // -X is in front of robot, X is behind, Y is left, +Y is right
+    path3->addWayPoint(-5.000, 3.592, 45,0.007);
+    path3->addWayPoint(-5.591, 3.132, 45,0.007);
+    path3->addWayPoint(-8.107, 1.065, 45,0.007);
     path3->makePath();
 
     cnt = 0;
