@@ -123,6 +123,9 @@ bool PathFinder::traverse(double time, double *rightOut, double *leftOut, double
 	if(err > 180){ //Either we are way off course or header past 0 and is now something like 356
 		err -= 360;
 	}
+	if(err < -180){ //Either we are way off course or header past 0 and is now something like 356
+		err += 360;
+	}
     double g_mod = m_Traj.segments[m_traverseCount].gyro_p * err;
 
     //Modify left and right power
@@ -133,8 +136,8 @@ bool PathFinder::traverse(double time, double *rightOut, double *leftOut, double
     m_Traj.segments[m_traverseCount].velR = *rightOut;
     m_Traj.segments[m_traverseCount].velL = *leftOut;
     
-    printf("\nT,%i,%f,%f,%f,%f,%f,%f",m_traverseCount,degree,gyroReading,err,g_mod,*rightOut,*leftOut);
-
+    printf("\nT,%i,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f",m_traverseCount,*rightOut,*leftOut,m_L_Traj.segments[m_traverseCount].x,m_L_Traj.segments[m_traverseCount].y,m_R_Traj.segments[m_traverseCount].x,m_R_Traj.segments[m_traverseCount].y,g_mod,degree,gyroReading,m_Traj.segments[m_traverseCount].x,m_Traj.segments[m_traverseCount].y);
+	/*
     printf("\nR,%i,%f,%f,%f,%f",m_traverseCount,m_R_Traj.segments[m_traverseCount].vel,\
         m_R_Traj.segments[m_traverseCount].acc,\
         m_R_Traj.segments[m_traverseCount].x,\
@@ -146,7 +149,7 @@ bool PathFinder::traverse(double time, double *rightOut, double *leftOut, double
         m_L_Traj.segments[m_traverseCount].x,\
         m_L_Traj.segments[m_traverseCount].y\
         );
-
+	*/
     return false;
 }
 
