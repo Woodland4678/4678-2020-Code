@@ -9,11 +9,10 @@
 // be sure to un-comment when putting back on the robot for testing.  Don't forget the velocity to 0 later in processPath
 // un-comment out the pc version of main()
 
-
 //#include "Path.h"
 //#include "math.h"
 //#include "stdio.h"
-// #include "Subsystems/LidarViewer.h"
+#include "Subsystems/LidarViewer.h"
 
 
 PathFinder::PathFinder(double acceleration, double deceleration, double distanceBetweenWheels,int runRobot)
@@ -100,6 +99,215 @@ void PathFinder::setNextVel2(int idx)
 //    printf("\nsetNextVel2: vel=%f, nextVel=%f, pos=%f, nextPos=%f",pathData.vel,pathData.nextVel,pathData.pos,pathData.nextPos);
     }
 
+int PathFinder::generateCircPath2(int idx)
+    { // Starting with splitting Spline into 10,000 little segments for arc distance calculation
+
+    // Traveling in a circle is a lot simpler than traversing a spline.  Ratio of left:right speeds is constant when doing a circle.
+    // We can create a trajectory entry every time.  pathData will have existing velocity info and we can modify that.
+    bool done;
+    double curad,err,pcterr,theta,vel,velL,velR,ratio,radius,avgHeading,arcDist,linDist,multR,multL,startHeading;
+    double prevVelL, prevVelR;
+    double sinHeading,cosHeading;
+    int previdx,iterCnt;
+
+    done = false;
+    iterCnt = 0;
+    if (idx == 0)
+        startHeading = (segmentData[0].startAngle - 180) * M_PI / 180; // pathData.startAngle * M_PI/180;
+    else
+        startHeading = segmentData[idx-1].endTheta;
+    
+    while((!done)&&(iterCnt < 15)&&(trajectorySpace() > 2))
+        {
+        // pathData.Calculated will have X,Y and heading (from any previous spline activity and we'll update it here.)
+        setNextVel2(idx);  // Make sure next velocity has been set so we can produce the left and right velocities for this next 50Hz section.
+
+        // Calculate how we're doing wrt being on the specified radius.  We can be inside the circle, on the circle or outside the circle.
+        curad = sqrt((pathData.calculatedX - segmentData[idx].centerX)*(pathData.calculatedX - segmentData[idx].centerX) + (pathData.calculatedY - segmentData[idx].centerY)*(pathData.calculatedY - segmentData[idx].centerY));
+//        printf("\nC(%f,%f) r=%f theta=%f (%f), Stheta=%f (%f) turn=%d a=%f, b=%f",segmentData[idx].x,segmentData[idx].y,segmentData[idx].linearDistance,segmentData[idx].theta,segmentData[idx].theta * 180/M_PI,segmentData[idx].startTheta,segmentData[idx].startTheta * 180/M_PI,
+//                segmentData[idx].turnDirection,segmentData[idx].a,segmentData[idx].b);
+        err = curad - segmentData[idx].linearDistance; // get the difference + = outside, - = inside.  Within certain limits, we can adjust the left / right ratio to correct.
+        //    pcterr = err / segmentData[idx].linearDistance; // get a percentage error for the correction calculation we want to apply to velL and velR.
+        pcterr = err / pathData.distanceBetweenWheels; // this is probably a better indicator as to how much we should change our left / right ratio
+        // 0 will mean we're right on.  -1 would be inside by a whole wheel base.  +1 would be outside by a whole wheel base.  Let's say +/- 0.25 would be the maximum compensation
+        // points (where we'd bring either velL or velR right down to 0 and the other at 2 * vel)
+        pathData.heading = pathData.calculatedAngle * M_PI / 180; // get heading in radians from calculatedAngle.
+
+        vel = (pathData.vel + pathData.nextVel) / 2; // Get avg velocity for this section.
+
+        // adjustments to x and y position takes a bit of thinking.
+        // When velL = velR, it's a straight forward x += vel * t * sin(heading), y += vel * t * cos(heading)
+        // when velL != velR, the distance traveled is really a small arc, not a straight line and we want max accuracy so we need to convert the arc traversal to change in x,y
+        // using ratio velL:velR = r+1/2b:r-1/2b we can eventually work out that r = b(velL + velR) / 2(velL - velR).  We can abs velL-velR if we want ot get r without sign problems
+        // since arc dist is avg vel * t and Theta x r = avg vel * t = (velL + velR)/2 we can eventually get a simplified eqn: Theta = (velR - velL) * t / b
+        // so we know the radius and the angle of the tiny arc.  This can get us correct calculations for change in x, change in y.  We just need to work out the
+        // precise formulas.  We should use the angle that is 1/2 (start angle + this added angle) and velocity that is 1/2 (start + end), just in case we're in an acceleration / deceleration section.
+        // this theta does match the change in heading so we can certainly use that here.
+
+        // normally, when traveling around a circle, the ratio of left and right velocities is r - 1/2 b : r + 1/2 b.  r is radius of the circle, b is wheel base.
+        // radius in this case was calculated as segmentData[idx].linearDistance.  b is pathdata.distanceBetweenWheels
+
+        multR = segmentData[idx].a; // multR + multL will = 2.0
+        multL = segmentData[idx].b;
+
+        if (pcterr < -0.25) // this is max error for being inside the circle, set one of multR, multL to 0, the other to 2
+            { // it may be necessary to do more here.  If we're headed for a tangent point but not there yet, drive straight.  If we passed a tangent point ... go backwards?
+            if (segmentData[idx].turnDirection == 1) // turning right
+                {
+                multL = 0;
+                multR = 2;
+                }
+            else
+                {
+                multL = 2;
+                multR = 0;                    
+                }
+            }
+        else if (pcterr > 0.25) // max error outside
+            {
+            if (segmentData[idx].turnDirection == 1) // turning right
+                {
+                multL = 2;
+                multR = 0;
+                }
+            else
+                {
+                multL = 0;
+                multR = 2;                    
+                }
+            }
+        else // somewhere between on inside / outside error.  scale multL and multR by a factor
+            { // let's simply add or subtract up to 0.5 to the larger multiplier over the 0.25 range. so 2 * pcterr
+            if (segmentData[idx].turnDirection == 1) // turning right (multL will normally be the larger.  If pcterr is > 0, outside, make multL even larger)
+                { // if inside the circle, make multL smaller
+                multL += pcterr * 2.0;
+                multR = 2 - multL;
+                }
+            else // turning left.  multR will normally be larger.
+                {
+                multR += pcterr * 2.0;
+                multL = 2 - multR;
+                }        
+            }
+        if (multL < 0.0) // limit multL and multR to the range 0.0 to 2.0
+            multL = 0.0;
+        if (multL > 2)
+            multL = 2;
+        if (multR < 0.0)
+            multR = 0.0;
+        if (multR > 2)
+            multR = 2;
+        
+        velR = vel * multR; // segmentData[idx].a; // use previously calculated multipliers
+        velL = vel * multL; // segmentData[idx].b;
+
+        previdx = pathData.trajPointIdx - 1;
+        if (previdx < 0)
+            previdx = MAX_TRAJ_POINTS - 1; 
+
+        // We've noticed that the acceleration value at start of circle can be rather excessive.  We may want to limit how much we can change velL and velR
+        // from the previous trajectory entry to smooth this out a bit (not sure how badly we'll get out of the circle if we do this.)
+        // if acceleration limit is something like 10m/s^2, in 0.02 seconds, max change in velocity should be v=at = 10 * 0.02 = 0.2 m/s
+        #define MAX_ACCEL 10.0
+        if (pathData.havePrevTraj)
+            {
+            prevVelL = trajPoints[previdx].velL;
+//            prevVelR = trajPoints[previdx].velR; Only need to check one since the 2 need to add up to vel.
+
+            if (prevVelL - velL > MAX_ACCEL * pathData.cycleTime)
+                { // exceeding acceleration limit.  we need to reduce the difference.
+                velL = prevVelL - MAX_ACCEL * pathData.cycleTime;
+                velR = vel*2 - velL;
+                }
+            else if (prevVelL - velL < -MAX_ACCEL * pathData.cycleTime)
+                {
+                velL = prevVelL + MAX_ACCEL * pathData.cycleTime;
+                velR = vel*2 - velL;
+                }
+            }
+
+        // Once velL and velR have been adjusted, do calculations for where that brings us for the next point.    
+        if (velL == velR) // If they're the same, do calculations a bit different to avoid div by 0 problems
+            {
+            avgHeading = pathData.heading; // Heading doesn't change when moving straight.
+            theta = 0; // no change to heading.
+            linDist = vel * pathData.cycleTime; // straight line distance from start to end of this short segment.
+            }
+        else // do circular curve calculations.
+            {
+            theta = (velL - velR) * pathData.cycleTime / pathData.distanceBetweenWheels;
+            radius = pathData.distanceBetweenWheels * (velL + velR) / 2 / fabs(velL - velR); // this is the short arc radius, not the circle
+            avgHeading = pathData.heading + theta/2; // Add half of theta to get the average heading.
+            pathData.nextHeading = pathData.heading + theta;// * 0.8888888; // Set up for next heading.  27-Mar-2021 - fudge factor of 0.88888 to correct for under-rotation.  Needed to change calculatedAngle below instead.
+            arcDist = vel * pathData.cycleTime;
+            linDist = fabs(2 * radius * sin(theta/2)); // linear distance from start to end points of this segment (so we can adjust x,y).  Get fabs so len is always +
+
+            }
+
+        if (segmentData[idx].turnDirection == 1) // if turning right, we're done when heading > segmentData[].theta
+            {
+            if (avgHeading >= startHeading + segmentData[idx].thetaSpan)
+                {
+                done = true;
+                printf("\nCirc Done Right: avgHeading=%f, startHeading=%f, thetaSpan=%f",avgHeading * 180/M_PI,startHeading * 180/M_PI,segmentData[idx].thetaSpan * 180/M_PI);
+                }
+            }
+        else
+            { // turning left, < theta.
+            if (avgHeading <= startHeading - segmentData[idx].thetaSpan)
+                {
+                done = true;                
+                printf("\nCirc Done Left: avgHeading=%f, startHeading=%f, thetaSpan=%f",avgHeading * 180/M_PI,startHeading * 180/M_PI,segmentData[idx].thetaSpan * 180/M_PI);
+                }
+            }
+        
+
+        // update calculated path info.
+        sinHeading = sin(avgHeading);
+        cosHeading = cos(avgHeading);
+        pathData.calculatedX += linDist * cosHeading;
+        pathData.calculatedY += linDist * sinHeading;
+        pathData.calculatedAngle += ((theta*180/M_PI)*0.74); // new heading (in degrees) (with fudge factor 27-Mar-2021)
+
+        trajPoints[pathData.trajPointIdx].vel = vel; // average velocity for this segment.
+        trajPoints[pathData.trajPointIdx].heading = avgHeading;
+        trajPoints[pathData.trajPointIdx].velL = velL;
+        trajPoints[pathData.trajPointIdx].velR = velR;
+        trajPoints[pathData.trajPointIdx].x = pathData.calculatedX;
+        trajPoints[pathData.trajPointIdx].y = pathData.calculatedY;
+        // The following are needed for smooth transition to spline
+        trajPoints[pathData.trajPointIdx].curLX = trajPoints[pathData.trajPointIdx].x + pathData.distanceBetweenWheels / 2 * sinHeading;
+        trajPoints[pathData.trajPointIdx].curLY = trajPoints[pathData.trajPointIdx].y - pathData.distanceBetweenWheels / 2 * cosHeading;
+        trajPoints[pathData.trajPointIdx].curRX = trajPoints[pathData.trajPointIdx].x - pathData.distanceBetweenWheels / 2 * sinHeading;
+        trajPoints[pathData.trajPointIdx].curRY = trajPoints[pathData.trajPointIdx].y + pathData.distanceBetweenWheels / 2 * cosHeading;
+        //printf("\nXY(%f,%f) CURL (%f,%f), CURR(%f,%f)",trajPoints[pathData.trajPointIdx].x,trajPoints[pathData.trajPointIdx].y,trajPoints[pathData.trajPointIdx].curLX,trajPoints[pathData.trajPointIdx].curLY,trajPoints[pathData.trajPointIdx].curRX,trajPoints[pathData.trajPointIdx].curRY);
+
+
+        if (!pathData.runRobot) // only send info to lidar viewer if we're not running the path.
+            LidarViewer::Get()->addPointXY((int)(trajPoints[pathData.trajPointIdx].x * -87.489),(int)(trajPoints[pathData.trajPointIdx].y * 104.98687),1); // lidarviewer has an 800 x 480 display area (9.144m x 4.572m).  plot x,y accordingly.
+
+        if (pathData.havePrevTraj)
+            { // calculate accelerations so we can see the numbers.  Really high or low values would present an issue.
+            trajPoints[pathData.trajPointIdx].accL = (trajPoints[pathData.trajPointIdx].velL - trajPoints[previdx].velL) / pathData.cycleTime;
+            trajPoints[pathData.trajPointIdx].accR = (trajPoints[pathData.trajPointIdx].velR - trajPoints[previdx].velR) / pathData.cycleTime;
+            }
+
+        printf("\nCIRC: %d (%f,%f) %f Deg v=%f Lvel=%f Rvel=%f Lacc=%f Racc=%f, err=%f pcterr=%f linDist=%f",pathData.trajPointIdx,trajPoints[pathData.trajPointIdx].x,trajPoints[pathData.trajPointIdx].y,trajPoints[pathData.trajPointIdx].heading * 180 / M_PI,trajPoints[pathData.trajPointIdx].vel,
+                trajPoints[pathData.trajPointIdx].velL,trajPoints[pathData.trajPointIdx].velR,trajPoints[pathData.trajPointIdx].accL,trajPoints[pathData.trajPointIdx].accR,err,pcterr,linDist,
+                Robot::drivetrain->positionX,Robot::drivetrain->positionY,Robot::drivetrain->thetaHeading * 180/M_PI);
+
+        pathData.trajPointIdx++; // increase point count.
+        if (pathData.trajPointIdx >= MAX_TRAJ_POINTS)
+            pathData.trajPointIdx = 0; // limit range to size of array.                
+        pathData.havePrevTraj = 1;
+        pathData.vel = pathData.nextVel;
+		segmentData[idx].sampleCount++; // Only used so when iterating, we know if this is the first iteration (set up starting stuff needed - pathData.calculatedX)
+        iterCnt++;
+        }
+    return(done);
+    }
+
+
 int PathFinder::generatePath2(int idx)
     { // Starting with splitting Spline into 10,000 little segments for arc distance calculation
     bool done;
@@ -132,7 +340,7 @@ int PathFinder::generatePath2(int idx)
             segmentData[idx].prevSampleNum = segmentData[idx].sampleNum; // keep track of last couple so we can get the difference.
             segmentData[idx].sampleNum = j;
 
-            // Manage deceleration.  The system will accelerate at the start of a segement but we would like to have deceleration to a final velocity happen
+            // Manage deceleration.  The system will accelerate at the start of a segment but we would like to have deceleration to a final velocity happen
             // more at the end of the segment.  To do this, we need to "estimate" the time left then figure out how much time is needed to complete the
             // deceleration and then start it at the right moment.
             // d = 1/2 a t^2.  to go from v1 (down) to v2 given acceleration a, v2 = v1 + at.  d = (v1 + v2) / 2 * t
@@ -164,8 +372,8 @@ int PathFinder::generatePath2(int idx)
             setNextVel2(idx);  // Make sure next has been set as well as position (distance into the Spline arc)
             // Using avg velocity, determine position into the spline arc.  This is where we will match arcLength
             // now part of setNextVel m_Traj.segments[ti].pos = (m_Traj.segments[ti-1].vel + m_Traj.segments[ti].vel) / 2.0 * m_Config.cycleTime + m_Traj.segments[ti-1].pos;                
-            trajPoints[pathData.trajPointIdx].pos = pathData.pos; // get traj pos from segementData pos
-            trajPoints[pathData.trajPointIdx].vel = pathData.vel; // and velocity from segementData vel
+            trajPoints[pathData.trajPointIdx].pos = pathData.pos; // get traj pos from segmentData pos
+            trajPoints[pathData.trajPointIdx].vel = pathData.vel; // and velocity from segmentData vel
 
             if (arcLength != lastArcLength)
                 {
@@ -180,10 +388,14 @@ int PathFinder::generatePath2(int idx)
             spline_getXY2(idx,percentage,&trajPoints[pathData.trajPointIdx].x, &trajPoints[pathData.trajPointIdx].y); // Get true X,Y at position x_hat on this Spline.
 //            printf("\ngetXY(%d,%f,%f,%f)",idx,percentage,m_Traj.segments[ti].x,m_Traj.segments[ti].y);
 
+            pathData.calculatedX = trajPoints[pathData.trajPointIdx].x;
+            pathData.calculatedY = trajPoints[pathData.trajPointIdx].y;
+
             trajPoints[pathData.trajPointIdx].velR = 0;
             trajPoints[pathData.trajPointIdx].velL = 0;
 
             trajPoints[pathData.trajPointIdx].heading = atan(dydt) + segmentData[idx].theta_offset; 
+            pathData.calculatedAngle = trajPoints[pathData.trajPointIdx].heading * 180 / M_PI;
 
             // traverse only uses left and right velocity values and heading (for gyro correction).  We don't need to set any other values really.
             // We do need some for calculation of distance travelled for each size of the robot.
@@ -201,6 +413,8 @@ int PathFinder::generatePath2(int idx)
             
             trajPoints[pathData.trajPointIdx].curRX = trajPoints[pathData.trajPointIdx].x - pathData.distanceBetweenWheels / 2 * sin_angle;
             trajPoints[pathData.trajPointIdx].curRY = trajPoints[pathData.trajPointIdx].y + pathData.distanceBetweenWheels / 2 * cos_angle;
+
+//            printf("\nXY(%f,%f) CURL (%f,%f), CURR(%f,%f)",trajPoints[pathData.trajPointIdx].x,trajPoints[pathData.trajPointIdx].y,trajPoints[pathData.trajPointIdx].curLX,trajPoints[pathData.trajPointIdx].curLY,trajPoints[pathData.trajPointIdx].curRX,trajPoints[pathData.trajPointIdx].curRY);
 
             if (pathData.havePrevTraj)
                 {
@@ -231,6 +445,12 @@ int PathFinder::generatePath2(int idx)
                     trajPoints[pathData.trajPointIdx].velR = dist2 / pathData.cycleTime;
                 trajPoints[pathData.trajPointIdx].accR = (trajPoints[pathData.trajPointIdx].velR - trajPoints[previdx].velR) / pathData.cycleTime;
 
+                if ((dist > 0.5)||(dist2 > 0.5))
+                    {
+                    printf("\nLarge Dist %f, %f from co-ords (%f,%f) - (%f,%f), (%f,%f) - (%f-%f)",dist,dist2,trajPoints[previdx].curLX,trajPoints[previdx].curLY,trajPoints[pathData.trajPointIdx].curLX,trajPoints[pathData.trajPointIdx].curLY,
+                        trajPoints[previdx].x,trajPoints[previdx].y,trajPoints[pathData.trajPointIdx].x,trajPoints[pathData.trajPointIdx].y);
+                    }
+
                 }
             else
                 {
@@ -240,8 +460,10 @@ int PathFinder::generatePath2(int idx)
                 }
             
             pathData.havePrevTraj = 1;
-//    printf("\n%d/%d (%f,%f) %f%% %f Deg pos=%f v=%f Lpos=%f Rpos=%f Lvel=%f Rvel=%f Lacc=%f Racc=%f",pathData.trajPointIdx,j,trajPoints[pathData.trajPointIdx].x,trajPoints[pathData.trajPointIdx].y,percentage,trajPoints[pathData.trajPointIdx].heading * 180 / M_PI,trajPoints[pathData.trajPointIdx].pos,trajPoints[pathData.trajPointIdx].vel,
-//            trajPoints[pathData.trajPointIdx].posL,trajPoints[pathData.trajPointIdx].posR,trajPoints[pathData.trajPointIdx].velL,trajPoints[pathData.trajPointIdx].velR,trajPoints[pathData.trajPointIdx].accL,trajPoints[pathData.trajPointIdx].accR);
+    printf("\n%d/%d (%f,%f) %f%% %f Deg pos=%f v=%f Lpos=%f Rpos=%f Lvel=%f Rvel=%f Lacc=%f Racc=%f d1=%f d2=%f XY(%f,%f) %fDeg",pathData.trajPointIdx,j,trajPoints[pathData.trajPointIdx].x,trajPoints[pathData.trajPointIdx].y,percentage,trajPoints[pathData.trajPointIdx].heading * 180 / M_PI,trajPoints[pathData.trajPointIdx].pos,trajPoints[pathData.trajPointIdx].vel,
+            trajPoints[pathData.trajPointIdx].posL,trajPoints[pathData.trajPointIdx].posR,trajPoints[pathData.trajPointIdx].velL,trajPoints[pathData.trajPointIdx].velR,trajPoints[pathData.trajPointIdx].accL,trajPoints[pathData.trajPointIdx].accR,
+            dist,dist2,
+            Robot::drivetrain->positionX,Robot::drivetrain->positionY,Robot::drivetrain->thetaHeading * 180/M_PI);
 //    printf("\n     curL(%f,%f) - prvL(%f,%f) d=%f, curR(%f,%f) - prvR(%f,%f) d=%f",trajPoints[pathData.trajPointIdx].curLX,trajPoints[pathData.trajPointIdx].curLY,
 //                    trajPoints[previdx].curLX,trajPoints[previdx].curLY,dist,
 //                    trajPoints[pathData.trajPointIdx].curRX,trajPoints[pathData.trajPointIdx].curRY,
@@ -260,6 +482,7 @@ int PathFinder::generatePath2(int idx)
         j++; // j increments
         if (j >= segmentData[idx].numberOfSamples)
             {
+            segmentData[idx].endTheta = trajPoints[pathData.trajPointIdx].heading;
             done = true; // Generation is now complete.
 //            printf("\nOn done, arcLength=%f, pos/dist=%f diff=%f, lastIncrement=%f",arcLength,m_Traj.segments[ti].pos/m_Splines[idx].distance,arcLength - m_Traj.segments[ti].pos/m_Splines[idx].distance,m_Splines[idx].lastIncrement);
             }
@@ -284,25 +507,29 @@ double PathFinder::angleToTheta(double angle) // convert angle to radians and li
 bool PathFinder::generateSpline2(int idx) // was idx, way1, way2.  Now, we just use start point from pathData.  idx is index into segmentData
     { // way1 will be startX, startY.  way 2 will be segmentData[idx].x, y
     //Setup offsets.  
-    if ((segmentData[idx].useActual)&&(pathData.runRobot)) // use Actual, but only if this is a real run.
-        {
-        segmentData[idx].startX = pathData.measuredX; // Note, we need to wait till robot has nearly finished previous trajectory before this data is available.
-        segmentData[idx].startY = pathData.measuredY;
-        segmentData[idx].startTheta = angleToTheta(pathData.measuredAngle); // Convert to radians and make sure it's in the +/-2pi range. * M_PI / 180.0;
-        }
-    else // use calculated.
-        {
-        segmentData[idx].startX = pathData.calculatedX;
-        segmentData[idx].startY = pathData.calculatedY;
-        segmentData[idx].startTheta = angleToTheta(pathData.calculatedAngle); //  * M_PI/180.0;
-        }
+
+// For pass 1 math stuff, segmentData[idx].startX, startY and startTheta should all have been set up already as well as x,y, theta end angles.
+//    if ((segmentData[idx].useActual)&&(pathData.runRobot)) // use Actual, but only if this is a real run.
+//        {
+//        segmentData[idx].startX = pathData.measuredX; // Note, we need to wait till robot has nearly finished previous trajectory before this data is available.
+//        segmentData[idx].startY = pathData.measuredY;
+//        segmentData[idx].startTheta = angleToTheta(pathData.measuredAngle); // Convert to radians and make sure it's in the +/-2pi range. * M_PI / 180.0;
+//        }
+//    else // use calculated.  If idx is 0, these would already have been set by startPoint()
+//        {
+//        segmentData[idx].startX = pathData.calculatedX;
+//        segmentData[idx].startY = pathData.calculatedY;
+//        segmentData[idx].startTheta = angleToTheta(pathData.calculatedAngle); //  * M_PI/180.0;
+//        }
+
+    segmentData[idx].startTheta = segmentData[idx].startAngle * M_PI / 180;
     
     //Calculate length (straight line distance)
     segmentData[idx].linearDistance = sqrt((segmentData[idx].x - segmentData[idx].startX)*(segmentData[idx].x - segmentData[idx].startX) + (segmentData[idx].y - segmentData[idx].startY)*(segmentData[idx].y - segmentData[idx].startY));
 //    printf("\n    Dist=%f",segmentData[idx].linearDistance);
     if(segmentData[idx].linearDistance == 0)
         {
-        printf("\nSpline Generation failed.  Segment has 0 length index=%d, SegmentID=%d",idx,segmentData[idx].segementID);
+        printf("\nSpline Generation failed.  Segment has 0 length index=%d, SegmentID=%d",idx,segmentData[idx].segmentID);
         return false;
         }
 
@@ -315,14 +542,16 @@ bool PathFinder::generateSpline2(int idx) // was idx, way1, way2.  Now, we just 
     //printf("\n    theta Offset=%f | theta S offset=%f theta E offset=%f| ",m_Splines[idx].theta_offset,m_Splines[idx].theta_S_hat,m_Splines[idx].theta_E_hat);
     if((fabs(segmentData[idx].theta_S_hat - (M_PI / 2)) < 0.0001)||(fabs(segmentData[idx].theta_E_hat - (M_PI / 2)) < 0.0001))
         {
-        printf("\nAngle out of range error (90 Deg) on index=%d, SegmentID=%d",idx,segmentData[idx].segementID);
+        printf("\nAngle out of range error (90 Deg) on index=%d, SegmentID=%d",idx,segmentData[idx].segmentID);
         return false;
         }
     double dumbVariable = angleDiffRadians(segmentData[idx].theta_S_hat, segmentData[idx].theta_E_hat);
     double dumbVariable2 = (M_PI / 2);
     if(dumbVariable >= dumbVariable2)
         {
-        printf("\nAngle between start and end is 90 Deg index=%d, SegmentID=%d",idx,segmentData[idx].segementID);
+        printf("\nAngle between start and end is 90 Deg index=%d, SegmentID=%d Start=%f (%f), End=%f (%f)",idx,segmentData[idx].segmentID,
+                segmentData[idx].startTheta,segmentData[idx].startTheta * 180 / M_PI,
+                segmentData[idx].theta,segmentData[idx].theta * 180 / M_PI);
         return false;
         }
 
@@ -337,13 +566,16 @@ bool PathFinder::generateSpline2(int idx) // was idx, way1, way2.  Now, we just 
     segmentData[idx].d = 0;
     segmentData[idx].e = segmentData[idx].m_S_Hat;
 
-    printf("\n Spline:   %f | %f | %f | %f | %f | linDist=%f",segmentData[idx].a,segmentData[idx].b,segmentData[idx].c,segmentData[idx].d,segmentData[idx].e,segmentData[idx].linearDistance);
+    printf("\n Spline: %d ID %d   %f | %f | %f | %f | %f | linDist=%f (%f,%f) %f Deg - (%f,%f) %f Deg",idx,segmentData[idx].segmentID,segmentData[idx].a,segmentData[idx].b,segmentData[idx].c,segmentData[idx].d,segmentData[idx].e,segmentData[idx].linearDistance,
+        segmentData[idx].startX,segmentData[idx].startY,segmentData[idx].startTheta * 180/ M_PI,segmentData[idx].x,segmentData[idx].y,segmentData[idx].theta * 180 / M_PI);
 
     return true;
 }
 
 bool PathFinder::generateCircle2(int idx) // set up math for the circular path
     { // This is an add-on.  How to make things work?  We have current point startX, startY.  This point is on the circle.
+	// using .x and .y as the center point is problematic for transition from spline to cicle and back again.  x, y, theta are always going to be the end points.
+	// startX, startY and startTheta are the starting point.  We're adding centerX, centerY for center of the circular path.
     // We have the center of the circle as specified by the point.  segmentData[idx].x,y.  linear distance between the 2 is radius.  This gets stored in linearDistance.
     // The angle we want to draw the circle through is specified by theta.  In this case, angle can be more than +/-2pi
     // if angle is > startAngle we'll turn right.  If it's <, turn left, going around the specified point as the center.
@@ -352,26 +584,108 @@ bool PathFinder::generateCircle2(int idx) // set up math for the circular path
     // angle of 180 (robot front is up) if turning right (angle decreases as we move)
     // position information will be relatively straight forward.  SIN and COS * radius of an angle that we increment by a very small amount each time.
     // 
+    double aplusb;
+    double endTheta;
+    double ctrToRobot;
+    double endTheta2;
 
-    if ((segmentData[idx].useActual)&&(pathData.runRobot)) // use Actual, but only if this is a real run.
-        {
-        segmentData[idx].startX = pathData.measuredX; // Note, we need to wait till robot has nearly finished previous trajectory before this data is available.
-        segmentData[idx].startY = pathData.measuredY;
-        segmentData[idx].startTheta = angleToTheta(pathData.measuredAngle); // Convert to radians and make sure it's in the +/-2pi range. * M_PI / 180.0;
+// segmentData[idx].startX, startY, startTheta should all have been set up already.  No need to reference pathData.  It may not be correct at this point.
+//    if ((segmentData[idx].useActual)&&(pathData.runRobot)) // use Actual, but only if this is a real run.
+//        {
+//        segmentData[idx].startX = pathData.measuredX; // Note, we need to wait till robot has nearly finished previous trajectory before this data is available.
+//        segmentData[idx].startY = pathData.measuredY;
+//        segmentData[idx].startTheta = angleToTheta(pathData.measuredAngle); // Convert to radians and make sure it's in the +/-2pi range. * M_PI / 180.0;
+//        }
+//    else // use calculated.
+//        {
+//        segmentData[idx].startX = pathData.calculatedX;
+//        segmentData[idx].startY = pathData.calculatedY;
+//        segmentData[idx].startTheta = angleToTheta(pathData.calculatedAngle); //  * M_PI/180.0;
+//        }
+    
+    // linearDistance will be the radius.  We certainly need that.  Let's just crank out trajectory points using velocity and distance traveled to go around the circle.
+    // heading data will need to basically match what we see in the spline rotate.  Won't be a whole lot different than the spline code, really.
+    segmentData[idx].linearDistance = sqrt((segmentData[idx].centerX - segmentData[idx].startX)*(segmentData[idx].centerX - segmentData[idx].startX) + (segmentData[idx].centerY - segmentData[idx].startY)*(segmentData[idx].centerY - segmentData[idx].startY));
+
+    // Approach for circle can be pretty direct (only need to do calcs at 50Hz)
+    // given circle of radius r, wheel base of b ...
+    // For a right turn, ratio of L:R is r + 1/2b : r - 1/2b
+    // For a left turn,  ratio of L:R is r - 1/2b : r + 1/2b
+    // This gives us reference velocity ratios.  
+    // Monitor position and if we're outside the circle, increase the ratio difference.
+    // If we're inside the circle, decrease the ratio difference.
+    // use gyro and / or calculated heading to track our x,y position.  
+    // when heading has reached the target, we are done.  We may want to do a bit better than this for progress so we can properly handle a deceleration on the circle.
+    // 
+    // if (segmentData[idx].theta > segmentData[idx].startTheta)
+	if (segmentData[idx].endAngle > segmentData[idx].startAngle) // Now using angle specs, not theta.  Theta will be heading.
+        { // right turn.  Calculate multipliers, put right in a, left in b
+        segmentData[idx].a = segmentData[idx].linearDistance - 0.5*pathData.distanceBetweenWheels;
+        segmentData[idx].b = segmentData[idx].linearDistance + 0.5*pathData.distanceBetweenWheels;
+        segmentData[idx].turnDirection = 1; // Indicate we're turning right
         }
-    else // use calculated.
+    else
+        { // left turn.  Calculate ratios, put right in a, left in b
+        segmentData[idx].a = segmentData[idx].linearDistance + 0.5*pathData.distanceBetweenWheels;
+        segmentData[idx].b = segmentData[idx].linearDistance - 0.5*pathData.distanceBetweenWheels;                
+        segmentData[idx].turnDirection = 0; // Indicate we're turning left
+        }
+
+    aplusb = segmentData[idx].a + segmentData[idx].b;
+    segmentData[idx].a = 2 * segmentData[idx].a / aplusb; // calculate the actual multipliers
+    segmentData[idx].b = 2 * segmentData[idx].b / aplusb; // for how to split vel into velR (*a) and velL (*b)
+
+//    segmentData[idx].currentX = segmentData[idx].startX; // get starting X,Y into currentX, currentY (not sure if this gets used)
+//    segmentData[idx].currentY = segmentData[idx].startY; // No, turns out we were only every placing values into these variables and never using them.
+        
+    // In order to keep generating Spline and Circle setup stuff, we need to have the final x,y and theta.  For
+    // the splines, this was easy but for circles, it's a bit trickier.  Angle isn't too hard but the final X,Y
+    // is a bit interesting.
+
+    // segmentData[idx].centerX,centerY are the center.  We'll end up at
+    // .x + r cos(theta2), .y + r sin(theta2).  Where theta2 is our ending angle around the circle.  We need to consider end angle and turn direction to get this right.
+    // When turning right, the angle of the line from the center of the circle to the robot location is heading(in deg) + 90 deg
+    // When turning left, the angle of the line from the center of the circle to the robot location is heading(in deg) - 90 deg.
+    // We're not really dealing with robot headings in this part though.  That comes later in the traj generation code.
+    // At this point, the radius from the center co-ords will be .endAngle +/- 90 deg.
+    //
+    // Not working really well for the second circle. We may need to calculate the angle of the vector from center to robot start
+    // position.  We can't just use the start Angle.  We can be off by 180 deg if center is above robot vs below.
+    // The actual starting angle would be an ATAN2(center to robot), I think.
+    ctrToRobot = atan2(segmentData[idx].startY - segmentData[idx].centerY,segmentData[idx].startX - segmentData[idx].centerX);
+    endTheta2 = ctrToRobot - segmentData[idx].thetaSpan; // rotate by the span to get new direction of vector from center to robot.
+    printf("\nRob(%f,%f) - Ctr(%f,%f) atan2(%f,%f) = %f (%f). theta2=%f (%f) -> (%f,%f)",segmentData[idx].startX,segmentData[idx].startY,segmentData[idx].centerX,segmentData[idx].centerY,
+        segmentData[idx].startY - segmentData[idx].centerY,segmentData[idx].startX - segmentData[idx].centerX,ctrToRobot,ctrToRobot*180/M_PI,
+        endTheta2,endTheta2 * 180 / M_PI,
+        segmentData[idx].centerX + segmentData[idx].linearDistance * cos(endTheta2),
+        segmentData[idx].centerY + segmentData[idx].linearDistance * sin(endTheta2)
+        );
+
+    // Probably don't need this part.        
+    if (segmentData[idx].turnDirection)
         {
-        segmentData[idx].startX = pathData.calculatedX;
-        segmentData[idx].startY = pathData.calculatedY;
-        segmentData[idx].startTheta = angleToTheta(pathData.calculatedAngle); //  * M_PI/180.0;
+        endTheta = (segmentData[idx].endAngle + 90) * M_PI / 180;// segmentData[idx].theta + M_PI/2; // +90 for right turn
+        }
+    else
+        {
+        endTheta = (segmentData[idx].endAngle - 90) * M_PI / 180;//segmentData[idx].theta - M_PI/2; // -90 for right turn
         }
     
-    segmentData[idx].linearDistance = sqrt((segmentData[idx].x - segmentData[idx].startX)*(segmentData[idx].x - segmentData[idx].startX) + (segmentData[idx].y - segmentData[idx].startY)*(segmentData[idx].y - segmentData[idx].startY));
-    if(segmentData[idx].linearDistance == 0)
+//    segmentData[idx].x = segmentData[idx].centerX + segmentData[idx].linearDistance * cos(endTheta);
+//    segmentData[idx].y = segmentData[idx].centerY + segmentData[idx].linearDistance * sin(endTheta);
+    segmentData[idx].x = segmentData[idx].centerX + segmentData[idx].linearDistance * cos(endTheta2);
+    segmentData[idx].y = segmentData[idx].centerY + segmentData[idx].linearDistance * sin(endTheta2);
+    printf("\nCircle (%f,%f) %fRad %fDeg Center(%f,%f)  End (%f,%f) %fRad %fDeg",segmentData[idx].startX,segmentData[idx].startY,segmentData[idx].startTheta,segmentData[idx].startTheta*180/M_PI,
+			segmentData[idx].centerX,segmentData[idx].centerY,
+            segmentData[idx].x,segmentData[idx].y,endTheta,endTheta*180/M_PI);
+        
+
+	if(segmentData[idx].linearDistance == 0)
         {
-        printf("\nCircle Generation failed.  Radius has 0 length index=%d, SegmentID=%d",idx,segmentData[idx].segementID);
+        printf("\nCircle Generation failed.  Radius has 0 length index=%d, SegmentID=%d",idx,segmentData[idx].segmentID);
         return false;
         }
+    printf("\nCircGen: robot(%f,%f) center(%f,%f) radius=%f a=%f b(rad)=%f c(tan)=%f",segmentData[idx].startX,segmentData[idx].startY,segmentData[idx].x,segmentData[idx].y,segmentData[idx].linearDistance,segmentData[idx].a,segmentData[idx].b,segmentData[idx].c);
 
     // ***************** need setup stuff here to allow us to traverse the portion of a circle.  set up numbers to make this work *******************
 
@@ -388,18 +702,15 @@ void PathFinder::setStartPoint(double x, double y, double angle) // establish th
     // Since this is a true starting point, intialize the calculated and measured values as well.
     pathData.startX = x;
     pathData.startY = y;
-    pathData.startAngle = angle;
+//    pathData.startAngle = angle;
 
-    pathData.calculatedX = x;
-    pathData.calculatedY = y;
+    pathData.calculatedX = x; // probably a good idea to init this stuff for when traj points get generated.
+    pathData.calculatedY = y; // we should not be using these for math pass 1 stuff.  Everything should come from segmentData[].
     pathData.calculatedAngle = angle;
 
     pathData.measuredX = x;
     pathData.measuredY = y;
     pathData.measuredAngle = angle;
-
-    if (!pathData.runRobot) // only send info to lidar viewer if we're not running the path.
-        LidarViewer::Get()->addPointXY((int)(x * -87.489),(int)(y * 104.98687),0); // lidarviewer has an 800 x 480 display area (9.144m x 4.572m).  plot x,y accordingly.
 
     pathData.trajPointIdx = 0; // reset the trajectory pointers so there's no points in the queue
     pathData.havePrevTraj = 0; // indicate we don't have any prior trajectory points yet.
@@ -410,7 +721,9 @@ void PathFinder::setStartPoint(double x, double y, double angle) // establish th
 
     segmentData[0].startX = x; // need proper start position for spline and circle path generation
     segmentData[0].startY = y;
-    segmentData[0].theta = angle * M_PI/180;
+//    segmentData[0].theta = angle * M_PI/180; // This is end angle, not start.  Probably don't need this!
+	segmentData[0].startAngle = angle; // In case first segment is a circle.
+	segmentData[0].startTheta = angleToTheta(angle);
 
     pathData.cycleTime = 0.02; // 50 Hz for now
     }
@@ -420,13 +733,11 @@ int PathFinder::splineTo(int segmentID, double x, double y, double angle, double
     if (pathData.pathPoints < MAX_PATH_POINTS)
         {
         segmentData[pathData.pathPoints].segmentType = 1; // This is a spline.
-        segmentData[pathData.pathPoints].segementID = segmentID;
+        segmentData[pathData.pathPoints].segmentID = segmentID;
         segmentData[pathData.pathPoints].x = x;
         segmentData[pathData.pathPoints].y = y;
-        if (!pathData.runRobot) // only send info to lidar viewer if we're not running the path.
-            LidarViewer::Get()->addPointXY((int)(x * -87.489),(int)(y * 104.98687),0); // lidarviewer has an 800 x 480 display area (9.144m x 4.572m).  plot x,y accordingly.
         segmentData[pathData.pathPoints].theta = angleToTheta(angle); //  * M_PI / 180; // angle will always be degrees.  theta will always be radians
-        segmentData[pathData.pathPoints].segementID = segmentID;
+        segmentData[pathData.pathPoints].segmentID = segmentID;
         if (targetVelocity < 0) // Backwards
             segmentData[pathData.pathPoints].goBackwards = 1;
         else
@@ -437,6 +748,7 @@ int PathFinder::splineTo(int segmentID, double x, double y, double angle, double
         segmentData[pathData.pathPoints].done = 0; // Just made this one.  It has not yet been processed for traversal points.
         segmentData[pathData.pathPoints].numberOfSamples = samples;
         segmentData[pathData.pathPoints].sampleCount = 0; // start at 0 and count to numberofSamples
+		segmentData[pathData.pathPoints].endAngle = angle; // Circle may need end angle so we're going to save it.
 
         pathData.pathPoints++;
         return true;
@@ -470,11 +782,18 @@ int PathFinder::circleAround(int segmentID, double x, double y, double angle, do
     if (pathData.pathPoints  < MAX_PATH_POINTS)
         {
         segmentData[pathData.pathPoints].segmentType = 2; // This is a circular path.
-        segmentData[pathData.pathPoints].segementID = segmentID;
-        segmentData[pathData.pathPoints].x = x;
-        segmentData[pathData.pathPoints].y = y;
-        segmentData[pathData.pathPoints].theta = angleToTheta(angle); //  * M_PI / 180; // angle will always be degrees.  theta will always be radians
-        segmentData[pathData.pathPoints].segementID = segmentID;
+        segmentData[pathData.pathPoints].segmentID = segmentID;
+        segmentData[pathData.pathPoints].centerX = x;
+        segmentData[pathData.pathPoints].centerY = y;
+		segmentData[pathData.pathPoints].endAngle = angle; // Actual ending angle now gets put in endAngle.
+        segmentData[pathData.pathPoints].theta = angleToTheta(angle - 180); //  * M_PI / 180; // angle will always be degrees.  theta will always be radians and it will be heading that matches spline headings.
+//        if (pathData.pathPoints != 0)
+//            segmentData[pathData.pathPoints].thetaSpan = segmentData[pathData.pathPoints].theta - segmentData[pathData.pathPoints - 1].theta;
+//        else
+//            segmentData[pathData.pathPoints].thetaSpan = segmentData[pathData.pathPoints].theta - segmentData[pathData.pathPoints].startAngle * M_PI / 180;
+        segmentData[pathData.pathPoints].thetaSpan = fabs((segmentData[pathData.pathPoints].endAngle -  segmentData[pathData.pathPoints].startAngle) * M_PI / 180);
+        
+        segmentData[pathData.pathPoints].segmentID = segmentID;
         if (targetVelocity < 0) // Backwards
             segmentData[pathData.pathPoints].goBackwards = 1;
         else
@@ -485,6 +804,8 @@ int PathFinder::circleAround(int segmentID, double x, double y, double angle, do
         segmentData[pathData.pathPoints].done = 0; // Just made this one.  It has not yet been processed for traversal points.
         segmentData[pathData.pathPoints].numberOfSamples = samples;
         segmentData[pathData.pathPoints].sampleCount = 0; // start at 0 and count to numberofSamples
+
+        pathData.pathPoints++;
 
         return true;
         }
@@ -532,8 +853,6 @@ int PathFinder::processPath(void) // This needs to be called at 50Hz any time pa
                 if (pathData.trajPointToUse >= MAX_TRAJ_POINTS)
                     pathData.trajPointToUse -= MAX_TRAJ_POINTS; // make sure we wrap around the circular array.
                 // Simply output the velocity values to the motors.
-                printf("\nTraj %d idxstep=%d, velR=%f, velL=%f sref=%f, timeRef=%f, timediff=%f, space=%d, toUse=%d, PtIdx=%d  ",pathData.trajPointToUse,idxstep,trajPoints[pathData.trajPointToUse].velR,trajPoints[pathData.trajPointToUse].velL,
-                            sref,pathData.timeReference,timediff,trajectorySpace(),pathData.trajPointToUse,pathData.trajPointIdx);
                 degree = trajPoints[pathData.trajPointToUse].heading * (180 / M_PI);
                 double err = 0;
                 if (trajPoints[pathData.trajPointToUse].velR >= 0) // if going forwards                    
@@ -551,7 +870,10 @@ int PathFinder::processPath(void) // This needs to be called at 50Hz any time pa
                 while(err > 180.0)
                     err -= 360.0;
 
-                printf("\nGyro: heading=%f, gyro=%f, err=%f",degree,gyroReading,err);
+                printf("\nTraj %d idxstep=%d, velR=%f, velL=%f sref=%f, timeRef=%f, timediff=%f, space=%d, toUse=%d, PtIdx=%d XY(%f,%f) %fDeg Gyro=%f, err=%f",pathData.trajPointToUse,idxstep,trajPoints[pathData.trajPointToUse].velR,trajPoints[pathData.trajPointToUse].velL,
+                            sref,pathData.timeReference,timediff,trajectorySpace(),pathData.trajPointToUse,pathData.trajPointIdx,
+                            Robot::drivetrain->positionX,Robot::drivetrain->positionY,Robot::drivetrain->thetaHeading * 180 / M_PI,gyroReading,err);
+//                printf("\nGyro: heading=%f, gyro=%f, err=%f",degree,gyroReading,err);
                 // When going backwards (.velR and .velL are negative)
                 // gyroReading = -degree is pretty much right on.
 //                if(gyroReading < 0)
@@ -573,7 +895,7 @@ int PathFinder::processPath(void) // This needs to be called at 50Hz any time pa
                 double g_mod = 0;
                 if ((err > -60)&&(err < 60)) // Only consider errors in the +/-60 range.
                     {
-                    g_mod = 0.025 * err;
+                    g_mod = 0.02 * err;
                     }
 //                g_mod = 0; // Disable gyro for now.
 
@@ -585,7 +907,7 @@ int PathFinder::processPath(void) // This needs to be called at 50Hz any time pa
             pathData.timeReference = sref; // update the reference for next time.
             }
 
-        } 
+        }  
     else // not really running.  increment pathData.trajPointToUse so we just generate the path and send the data to the cameraviewer
         {
         if (pathData.trajPointToUse != pathData.trajPointIdx)
@@ -605,56 +927,71 @@ int PathFinder::processPath(void) // This needs to be called at 50Hz any time pa
                 {
                 if (segmentData[idx].sampleCount == 0) // if this is the first crack at this segment, init a bit of information ...
                     {
-                    if (idx == 0) // If this is the very first segement, velocity will be starting at 0
-                        { // and we can init a bunch of other stuff that needs to be set when starting a segment.
-                        pathData.pos = pathData.acceleration * pathData.cycleTime * pathData.cycleTime;
-                        pathData.arcPos = pathData.pos / segmentData[idx].linearDistance;
-                        pathData.vel = 0;
-                        }
-                    else
-                        {
-                        // This wasn't quite right.  The more-recent (closest to the 100% of segement) the trajectory point was generated, the more we want to delay 
-                        // coming up the with the first one of this path.  We have pos and nextPos.  Pos should be initiated with 
-                        // nextPos - pos times some factor based on how recent pos was used.  *( 1.0 - (samples - j) / (last diff between samples)
-                        // Nice!! This works for smoothing transition between spline segments.
-//                        printf("\npos=%f, prevPos=%f, sampleNum=%d, prevSampleNum=%d, numSamples=%d",pathData.pos,pathData.prevPos,segmentData[idx-1].sampleNum,segmentData[idx-1].prevSampleNum,segmentData[idx-1].numberOfSamples);
-                        if (segmentData[idx-1].sampleNum != segmentData[idx-1].prevSampleNum)
-                            pathData.pos = (pathData.pos - pathData.prevPos) * (1.0 - (double)(segmentData[idx-1].numberOfSamples - segmentData[idx-1].sampleNum)/(double)(segmentData[idx-1].sampleNum - segmentData[idx-1].prevSampleNum));
-                        else
-                            pathData.pos = 0;                        
-//                        printf("\npos=%f",pathData.pos);
-                        pathData.arcLength = 0;                                
-                        }
-                    
-//                    else // This is not the very first segment.  velocity will need to be set at whatever the previous segment left us at for speed.
-//                        {
-//                        segmentData[idx].vel = segmentData[idx - 1].vel; // .vel will be current speed (in previous segment as well)                            
-//                        }
-                    // Other things that need to be set at the start of trajectory generation 
-                    pathData.heading = segmentData[idx].theta_offset;
-                    segmentData[idx].currentX = segmentData[idx].startX;
-                    segmentData[idx].currentY = segmentData[idx].startY;
-//                    pathData.lastArcLength = 0;
-                    pathData.last_integrand = sqrt(1 + spline_derivativeAt2(idx, 0) * spline_derivativeAt2(idx, 0)) / segmentData[idx].numberOfSamples;
-                    setNextVel2(idx); // prepare nextPos and nextVel.
-                    }
+					// We'll need to prep the segments differently depending on segment type and previous segment type.
+					if (segmentData[idx].segmentType == 1) // if this is a spline segment ... 
+						{
+						if (idx == 0) // If this is the very first segment, velocity will be starting at 0
+							{ // and we can init a bunch of other stuff that needs to be set when starting a segment.
+							pathData.pos = pathData.acceleration * pathData.cycleTime * pathData.cycleTime;
+							pathData.arcPos = pathData.pos / segmentData[idx].linearDistance;
+							pathData.vel = 0;
+							}
+						else
+							{
+							// This wasn't quite right.  The more-recent (closest to the 100% of segment) the trajectory point was generated, the more we want to delay 
+							// coming up the with the first one of this path.  We have pos and nextPos.  Pos should be initiated with 
+							// nextPos - pos times some factor based on how recent pos was used.  *( 1.0 - (samples - j) / (last diff between samples)
+							// Nice!! This works for smoothing transition between spline segments.
+	//                        printf("\npos=%f, prevPos=%f, sampleNum=%d, prevSampleNum=%d, numSamples=%d",pathData.pos,pathData.prevPos,segmentData[idx-1].sampleNum,segmentData[idx-1].prevSampleNum,segmentData[idx-1].numberOfSamples);
+							if (segmentData[idx-1].segmentType == 1) // If previous was a spline, 
+								{
+								if (segmentData[idx-1].sampleNum != segmentData[idx-1].prevSampleNum)
+									pathData.pos = (pathData.pos - pathData.prevPos) * (1.0 - (double)(segmentData[idx-1].numberOfSamples - segmentData[idx-1].sampleNum)/(double)(segmentData[idx-1].sampleNum - segmentData[idx-1].prevSampleNum));
+								else
+									pathData.pos = 0;                        
+		//                        printf("\npos=%f",pathData.pos);
+								}
+							else // Previous was a circle.  Do things a bit different.
+								{
+								pathData.pos = 0;
+								}								
+							pathData.arcLength = 0;                                
+							}
+						
+						// Other things that need to be set at the start of trajectory generation 
+						pathData.heading = segmentData[idx].theta_offset;
+	//                    segmentData[idx].currentX = segmentData[idx].startX; // We were storing these but never using them.
+	//                    segmentData[idx].currentY = segmentData[idx].startY;
+	//                    pathData.lastArcLength = 0;
+						pathData.last_integrand = sqrt(1 + spline_derivativeAt2(idx, 0) * spline_derivativeAt2(idx, 0)) / segmentData[idx].numberOfSamples;
+						setNextVel2(idx); // prepare nextPos and nextVel.
+						}
+					else // This is a circle
+						{
+						pathData.currentX = segmentData[idx].startX;
+						pathData.currentY = segmentData[idx].startY;
+						}						
+					}
 
-                segmentData[idx].done = generatePath2(idx); // Go make some traversal points.  Only do a few each time.  we'll return true when we're done.
+                if (segmentData[idx].segmentType == 1)
+                    segmentData[idx].done = generatePath2(idx); // Go make some traversal points.  Only do a few each time.  we'll return true when we're done.
+                else
+                    segmentData[idx].done = generateCircPath2(idx);
                 }
             else
                 {
-                printf("\n Completed segment %d, ID=%d",pathData.activeIdx,segmentData[pathData.activeIdx].segementID);
+                printf("\n Completed segment %d, ID=%d",pathData.activeIdx,segmentData[pathData.activeIdx].segmentID);
                 if (pathData.activeIdx < pathData.pointsGenerated - 1)
                     {
                     pathData.activeIdx++; // Move on to the next one.
-                    printf("\nStarting segment %d, ID=%d",pathData.activeIdx,segmentData[pathData.activeIdx].segementID);
+                    printf("\nStarting segment %d, ID=%d",pathData.activeIdx,segmentData[pathData.activeIdx].segmentID);
                     // Other things that need to initiate traversal points should go here.
                     }
                 else
                     {
                     done = true; // We've done all we can.  Time to end.
-//                    Robot::drivetrain->setRightVelocity(0); // Make sure things stop.
-//                    Robot::drivetrain->setLeftVelocity(0);
+                    Robot::drivetrain->setRightVelocity(0); // Make sure things stop.
+                    Robot::drivetrain->setLeftVelocity(0);
                     }
                 
                 }
@@ -665,7 +1002,7 @@ int PathFinder::processPath(void) // This needs to be called at 50Hz any time pa
             if (pathData.activeIdx < pathData.pointsGenerated)
                 {
                 pathData.activeIdx++; // Move on to the next one.
-                printf("\nStarting segment %d, ID=%d",pathData.activeIdx,segmentData[pathData.activeIdx].segementID);
+                printf("\nStarting segment %d, ID=%d",pathData.activeIdx,segmentData[pathData.activeIdx].segmentID);
                 // Other things that need to initiate traversal points should go here.
                 }
             }
@@ -690,6 +1027,8 @@ int PathFinder::processPath(void) // This needs to be called at 50Hz any time pa
                     segmentData[pathData.pointsGenerated].startX = pathData.calculatedX;
                     segmentData[pathData.pointsGenerated].startY = pathData.calculatedY;
                     segmentData[pathData.pointsGenerated].startTheta = segmentData[pathData.pointsGenerated-1].theta;
+					segmentData[pathData.pointsGenerated].startAngle = segmentData[pathData.pointsGenerated-1].endAngle; // segmentData[pathData.pointsGenerated].startTheta * 180 / M_PI + 180; // For circles we will need the circular start angle.
+					
                     }
                 }
             if (segmentData[pathData.pointsGenerated].segmentType == 1)
@@ -764,61 +1103,48 @@ int PathFinder::processPath(void) // This needs to be called at 50Hz any time pa
 //
 // Testing by adding main() here ...
 //
+// OK.  We sort of broke things on the robot version of this.  We need to re-examine the path.cpp stuff and get the circle
+// Generation working much more similar to the spline generation.
+// Here's a few of the key things:
+// GenerateSpline2 and GenerateCircle2 are meant to do some math calcs prior to generating the trajectory points.
+// Gets StartX, StartY, StartTheta from pathData.measured or calculated and uses angleToTheta which is probably a good idea.   segmentData[idx].startTheta = angleToTheta(pathData.calculatedAngle); //  * M_PI/180.0;
+// for Spline, .x and .y are the end point with end angle .theta.  These are given by the ToSpline call.  So this is how we get our start and end positions.
+// just above the call to GenerateSpline2, you can see where we set the Start stuff for calculated
+//                    pathData.calculatedX = segmentData[pathData.pointsGenerated-1].x;
+//                    pathData.calculatedY = segmentData[pathData.pointsGenerated-1].y;
+//                    pathData.calculatedAngle = segmentData[pathData.pointsGenerated-1].theta * 180/ M_PI; // End angle of last segment becomes start angle of next segment.
+// These 3 lines probably do nothing since GenerateSpline2 sets StartX, StartY and startTheta at the very start of generateSpline2.  We can try commenting them out and see what happens.
+//                    segmentData[pathData.pointsGenerated].startX = pathData.calculatedX;
+//                    segmentData[pathData.pointsGenerated].startY = pathData.calculatedY;
+//                    segmentData[pathData.pointsGenerated].startTheta = segmentData[pathData.pointsGenerated-1].theta;
+//
+// We did manage to come up with a way to calculate the circle end point and heading.  This will need to be implemented properly for us to be able to traverse from spline to circular
+// and back to spline again without there being problems.
+// 
+// It's recommended to keep with the calculated and measured plans since we are likely to want to work with the idea of "measured" start points eventually.
+// 
+// To-Do: 
+// 1.  adjust GenerateCircle2 to have .x, .y and .theta be the ending point of the circle traversal so the above code for setting "Calculated" works the same for both.
+// 2.  For the pass 1 math stuff, don't use pathData for anything.  This should all be segmentData stuff.  Leave pathData for the actual trajectory point generation (if we need it)
+// right now, there's a chance things could interfere with each other.
+// 3. The math for circular should provide us with everything we need to crank out trajectory points and have that in the segmentData[] information (center X, Y, start X, Y, start angle, end angle are the critical items)
+// 		we can calculate radius and maybe a couple of other things if it makes sense to do so.
+// One issue is that the spline headings are NOT the same as the angles we feed into the spline (mostly due to use -X that's cranking out an angle that's 180 degrees from what we put in the splineTo information)
+// circle stuff will need to work with this.  For now, let's have the actual circle start and end angles stored in segmentData[].startAngle, segmentData[].endAngle.
+// These will be used for the math pass 1 stuff but we'll establish theta values for the traj part that matches what the spline stuff generates.
+//     
+// In order to keep generating Spline and Circle setup stuff, we need to have the final x,y and theta.  For
+// the splines, this was easy but for circles, it's a bit trickier.  Angle isn't too hard but the final X,Y
+// is a bit interesting.  We've figured that part out now too.
 
-/*
-int main()
-    {
-    int done;
-
-    PathFinder path1(1.5,1.5,0.7112,0); // Do a graphics-only build.
-
-    path1.setStartPoint(-1.054,0.600,0);
-    path1.splineTo(1,-2.286,1.524,-60,2.0,2.0,0,5000);
-    path1.splineTo(2,-3.325, 2.228, 0,2.0,2.0,0,5000); //2.44, 0, 0 - meters
-    path1.splineTo(3,-5.713, 2.250, 0,2.0,2.0,0,5000);
-    path1.splineTo(4,-6.857, 1.521, 60,2.0,2.0,0,5000);
-    path1.splineTo(5,-7.621, 0.761, 0,2.0,2.0,0,5000);
-    path1.splineTo(6,-8.387, 1.525, -89,2.0,2.0,0,5000);    
-    path1.splineTo(7,-7.605, 2.285, -178,2.0,2.0,0,5000);
-    path1.splineTo(8,-6.857, 1.521, -240,2.0,2.0,0,5000);
-    path1.splineTo(9,-5.706, 0.802, -180,2.0,2.0,0,5000);
-    path1.splineTo(10,-3.243, 0.800, -180,2.0,2.0,0,5000);
-    path1.splineTo(11,-2.293, 1.521, -120,2.0,2.0,0,5000);
-    path1.splineTo(12,-1.775, 2.461, -120,2.0,2.0,0,5000);
-
-    done = false;
-
-    while((path1.pathData.trajPointIdx < 100)&&(!done))
-        done = path1.processPath(); // Keep calling till we get to a certain completion condition.
-
-    }
-    */
-
-/*
-int main()
-    {
-    int done;
-
-    PathFinder path1(4.5,4.5,0.7112,0); // Do a graphics-only build.
-
-    path1.setStartPoint(-1.054,0.600,0);
-    path1.splineTo(1,-2.286,1.524,-60,2.0,2.0,0,5000);
-    path1.splineTo(2,-3.325, 2.228, 0,4.0,4.0,0,5000); //2.44, 0, 0 - meters
-    path1.splineTo(3,-5.713, 2.250, 0,4.0,4.0,0,5000);
-    path1.splineTo(4,-6.857, 1.521, 60,4.0,3.0,0,5000);
-    path1.splineTo(5,-7.621, 0.761, 0,3.0,3.0,0,5000);
-    path1.splineTo(6,-8.387, 1.525, -89,2.0,2.0,0,5000);    
-    path1.splineTo(7,-7.605, 2.285, -178,2.0,2.0,0,5000);
-    path1.splineTo(8,-6.857, 1.521, -240,2.0,2.0,0,5000);
-    path1.splineTo(9,-5.706, 0.802, -180,2.0,2.0,0,5000);
-    path1.splineTo(10,-3.243, 0.800, -180,2.0,2.0,0,5000);
-    path1.splineTo(11,-2.293, 1.521, -120,2.0,2.0,0,5000);
-    path1.splineTo(12,-1.775, 2.461, -120,2.0,2.0,0,5000);
-
-    done = false;
-
-    while((path1.pathData.trajPointIdx < 100)&&(!done))
-        done = path1.processPath(); // Keep calling till we get to a certain completion condition.
-
-    }
-    */
+    // segmentData[idx].x,y are the center.  We'll end up at
+    // .x + r cos(theta2), .y + r sin(theta2).  Where theta2 is our ending angle around the circle.  We need to consider end angle and turn direction to get this right.
+    // When turning right, the angle of the line from the center of the circle to the robot location is heading(in deg) + 90 deg
+    // When turning left, the angle of the line from the center of the circle to the robot location is heading(in deg) - 90 deg.
+// 
+// GeneratePath2 and GenerateCircPath2 ... These build the traj points
+// GeneratePath2 does not appear to use segmentData[].currentX,Y,Angle.  The coefficients set for the segment would provide the correct
+// location and heading information so there's no need to initiate it.  This may have to be a bit different with the circle path stuff.
+// GenerateCircPath2 uses too much information from pathData.  It all needs to originate from segmentData.  We can use pathData values to do the traversal.
+// We may need to be a bit more careful in transitions, especially between circles and splines.
+// 

@@ -33,66 +33,76 @@ void Shoot::Initialize() {
     aimCount = 0;
     isAimed = false;
     shootRPM = 0;
-    Robot::drivetrain->setLimeLED(true);
+    if(Robot::oi->getAutoSwitch()->GetRawButton(14)) {
+        Robot::drivetrain->setLimeLED(true);
+        shootMode = target;
+    } else {
+        shootMode = demo;
+    }
 }
 
 // Called repeatedly when this Command is scheduled to run
 void Shoot::Execute() {
     //close shot
     
-    
-    if(!isAimed){
-        if (Robot::drivetrain->autoAim(aimToNum) < 0.2) {
-            aimCount++;
-        }
-        if(Robot::drivetrain->getLimeVertical() >= 14 && Robot::drivetrain->getLimeVertical() < 21) {
-            Robot::shooter->goToHoodPos(-840);
-            shootRPM = 4000;
-            Robot::intakes->setMagSpeed(-0.9);
-            aimToNum = -0.35;
-            
+    if(shootMode == target) {
+        if(!isAimed){
+            if (Robot::drivetrain->autoAim(aimToNum) < 0.2) {
+                aimCount++;
+            }
+            if(Robot::drivetrain->getLimeVertical() >= 14 && Robot::drivetrain->getLimeVertical() < 21) {
+                Robot::shooter->goToHoodPos(-840);
+                shootRPM = 4000;
+                Robot::intakes->setMagSpeed(-0.9);
+                aimToNum = -0.35;
+                
+            } 
+            else if(Robot::drivetrain->getLimeVertical() <= 30 && Robot::drivetrain->getLimeVertical() > 22) {
+                //old cells -2450 and 5500 works from 8.5ft to 15ft
+                //
+                Robot::shooter->goToHoodPos(-100);
+                shootRPM = 3750;
+                Robot::intakes->setMagSpeed(-0.9);
+                aimToNum = 0;
+            }       
+            //medium shot
+            else if(Robot::drivetrain->getLimeVertical() <= 4 && Robot::drivetrain->getLimeVertical() > 1) {
+                //old cells -2450 and 5500 works from 8.5ft to 15ft
+                Robot::shooter->goToHoodPos(-3010); //
+                shootRPM = 5300;
+                Robot::intakes->setMagSpeed(-0.9);
+                aimToNum = -0.35;
+            }                                  
+            //far shot                                                                      
+            else if(Robot::drivetrain->getLimeVertical() <= -4 && Robot::drivetrain->getLimeVertical() > -5.5) {
+                Robot::shooter->goToHoodPos(-3490);
+                shootRPM = 5500;
+                Robot::intakes->setMagSpeed(-0.9);
+                aimToNum = 1.0;
+            } 
+            else if(Robot::drivetrain->getLimeVertical() <= -8.5) {
+                Robot::shooter->goToHoodPos(-3780);
+                shootRPM = 5900;
+                Robot::intakes->setMagSpeed(-0.9);
+                aimToNum = 1.0;
+            } else {
+                Robot::shooter->goToHoodPos(-1000);
+                shootRPM = 3800;
+                Robot::intakes->setMagSpeed(-0.9);
+                aimToNum = 0;
+            }
         } 
-        else if(Robot::drivetrain->getLimeVertical() <= 30 && Robot::drivetrain->getLimeVertical() > 22) {
-            //old cells -2450 and 5500 works from 8.5ft to 15ft
-             //
-            Robot::shooter->goToHoodPos(-100);
-            shootRPM = 3750;
-            Robot::intakes->setMagSpeed(-0.9);
-            aimToNum = 0;
-        }       
-        //medium shot
-        else if(Robot::drivetrain->getLimeVertical() <= 4 && Robot::drivetrain->getLimeVertical() > 1) {
-            //old cells -2450 and 5500 works from 8.5ft to 15ft
-            Robot::shooter->goToHoodPos(-3010); //
-            shootRPM = 5300;
-            Robot::intakes->setMagSpeed(-0.9);
-            aimToNum = -0.35;
-        }                                  
-        //far shot                                                                      
-        else if(Robot::drivetrain->getLimeVertical() <= -4 && Robot::drivetrain->getLimeVertical() > -5.5) {
-            Robot::shooter->goToHoodPos(-3490);
-            shootRPM = 5500;
-            Robot::intakes->setMagSpeed(-0.9);
-            aimToNum = 1.0;
-        } 
-        else if(Robot::drivetrain->getLimeVertical() <= -8.5) {
-            Robot::shooter->goToHoodPos(-3780);
-            shootRPM = 5900;
-            Robot::intakes->setMagSpeed(-0.9);
-            aimToNum = 1.0;
-        } else {
-            Robot::shooter->goToHoodPos(-1000);
-            shootRPM = 3800;
-            Robot::intakes->setMagSpeed(-0.9);
-            aimToNum = 0;
-        }
-    } 
-    if (aimCount > 55) {
-        //Set drive wheels to zero power here to stop drifting
-        Robot::drivetrain->setLeftPower(0);
-        Robot::drivetrain->setRightPower(0);
+        if (aimCount > 55) {
+            //Set drive wheels to zero power here to stop drifting
+            Robot::drivetrain->setLeftPower(0);
+            Robot::drivetrain->setRightPower(0);
+            isAimed = true;
+        };
+    } else {
+        shootRPM = 4000;
+        Robot::shooter->goToHoodPos(-1200);
         isAimed = true;
-    };
+    }
     Robot::shooter->shoot(shootRPM, isAimed, false);
     
     // switch (shootState){

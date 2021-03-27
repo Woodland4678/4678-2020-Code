@@ -141,18 +141,99 @@ void Drivetrain::InitDefaultCommand() {
 
 void Drivetrain::Periodic() {
     // Put code here to be run every loop
+    int deltaR,deltaL,encR,encL;
+    double deltaTheta,linDist,deltaAvg;
+    double arcTheta,arcRadius;
+    double avgThetaHeading;
+    double headerr;
+
     frc::SmartDashboard::PutNumber("Left Speed",getLeftRPM());
     frc::SmartDashboard::PutNumber("Right Speed",getRightRPM());
     frc::SmartDashboard::PutNumber("Gyro",(getGyroReading()*-1));
 
     frc::SmartDashboard::PutNumber("Left Encoder",leftEncoder->Get());
     frc::SmartDashboard::PutNumber("Right Encoder",rightEncoder->Get());
+    frc::SmartDashboard::PutNumber("Left Position",getLeftEncoder());
+    frc::SmartDashboard::PutNumber("Right Position",getRightEncoder());
 
     double SpeedErrorL = l_Set - getLeftRPM();
     double SpeedErrorR = r_Set - getRightRPM();
 
     frc::SmartDashboard::PutNumber("Left I Accum",leftMaster->GetPIDController().GetIAccum());
     frc::SmartDashboard::PutNumber("Right I Accum",rightMaster->GetPIDController().GetIAccum());
+
+    // leftMaster->GetEncoder().GetPosition();  // Should get sparkmax position info.
+    // rightMaster->GetEncoder().GetPosition(); // Turns out this is already set up
+    // with functions below getLeftEncoder and getRightEncoder.
+    // To get the grayhill encoder values, use leftEncoder->Get() and rightEncoder->Get()
+    // we have leftEncoder and rightEncoder declared above.
+    // Shouldn't be too hard to establish the relationship between getLeftEncoder
+    // and leftEncoder->Get(), same with right.
+    // Left Encoder of 1289 = Left Position of -6.547623 div=196.8653357
+    // Right Encoder of 1367 = Right Position of 6.642862 div=205.7847958
+    // Discrepancy is already a bit on the large side.  There's also a high / low diff.
+    // Encoders will measure distance the same, smartmax positions will differ.
+    // Encoders are 256 PPR so we get a 1024 count per rev using quadrature.
+    // Gearboxes are 3:1 encoder to output shaft and we have a 26:58 ratio on the 3rd stage.
+    // 6" (15.24 cm) dia wheels -> 1024 * 3 * 58/26 * 0.1524 * pi = 3281 pulses per meter
+    // This may need to be fine-tuned but it will get us very close.
+    // #define ENCODER2METERS 1024 * 3 * 58/26 * 0.1524 * M_PI
+    // For some reason, math using ENCODER2METERS as defined in the line above is not working right.
+    // Defining the actual number seems to work just fine!  
+    #define ENCODER2METERS 3281.033742
+    // We seem to be 10% to far on the angle compared to the gyro reading.
+    // Adding 10% to the wheel base will probably correct that.  Trying 0.78
+    // This gets reasonably close but the actual gyro heading is way better.
+    #define WHEELBASE 0.78
+
+    encL = leftEncoder->Get();
+    encR = rightEncoder->Get();
+    deltaL = encL - prevEncLeft;
+    deltaR = encR - prevEncRight;
+    deltaAvg = (double)(deltaL + deltaR)/2.0;
+
+    if ((deltaL != 0)||(deltaR != 0)) // Only need to update if something moved.
+        {
+        deltaTheta = ((double)deltaR - (double)deltaL) / ENCODER2METERS / WHEELBASE; // Change in direction is arc distance  / wheel base
+        avgThetaHeading = thetaHeading + (deltaTheta / 2.0); // use 1/2 deltaTheta to get average heading direction for this motion.
+        thetaHeading += deltaTheta; // Adjust real heading by the difference.
+        // Use this along with the gyro to create a "stabilized" heading value to use for position tracking.
+
+        // deltaL + deltaR gives us an arcdistance.  To adjust X, Y, we should use the linear distance instead of
+        // arc distance.
+        if (deltaTheta == 0) // This is linear, no angle so arc dist = linear dist
+            {
+            linDist = deltaAvg / ENCODER2METERS; // linear Distance in meters   
+            arcRadius = 0;
+            }
+        else // This is an arc.  Calculate linear distance
+            {
+            // Arc angle is fabs(L-R)/b (left position (in m) - right position (in m)) / width of base (in m)
+            arcTheta = fabs(deltaTheta);
+            // Arc raduis is such that arcTheta * arcRadius = deltaAvg
+            arcRadius = (deltaAvg / ENCODER2METERS) / arcTheta;
+            // linDist is then 2(arcRadius)sin(arcTheta/2)
+            linDist = 2.0 * arcRadius * sin(arcTheta / 2);
+            }
+        
+        // Now, we can adjust x and y position by linDist in the direction of our avgThetaHeading
+        printf("\ndeltaL=%d deltaR=%d deltaTheta=%f thetaHeading=%f linDist=%f arcRadius=%f Gyro=%f",deltaL,deltaR,deltaTheta,thetaHeading * 180 / M_PI,linDist,arcRadius,getGyroReading());
+
+        positionX -= linDist * cos(avgThetaHeading);
+        positionY += linDist * sin(avgThetaHeading);
+
+        frc::SmartDashboard::PutNumber("PositionX",positionX);
+        frc::SmartDashboard::PutNumber("PositionY",positionY);
+
+        prevEncLeft = encL;
+        prevEncRight = encR;
+        }
+    // adjust thetaHeading based on gyro reading.
+    headerr = thetaHeading - getGyroReading() / 180 * M_PI; // In radians
+    thetaHeading -= headerr * 0.1; // Adjust by 10% of the error between heading and gyro
+    printf("\nheading=%f, gyro=%f, err=%f",thetaHeading * 180/M_PI,getGyroReading(),headerr * 180/M_PI);
+
+    frc::SmartDashboard::PutNumber("Heading",thetaHeading * 180/M_PI); // Heading in degrees.
 
     frc::SmartDashboard::PutNumber("Left Error",SpeedErrorL);
     frc::SmartDashboard::PutNumber("Right Error",SpeedErrorR);
@@ -182,10 +263,14 @@ double Drivetrain::getGyroReading(){
 
 void Drivetrain::resetGyro(){
     m_Gyro->Reset();
+    thetaHeading = 0; // reset calculated heading as well.
 }
 
 void Drivetrain::calibrateGyro(){
     m_Gyro->Calibrate();
+    thetaHeading = 0;
+    positionX = 0;
+    positionY = 0;
 }
 
 #pragma endregion
@@ -230,16 +315,37 @@ void Drivetrain::setLeftPower(double pwr) {
     if(!pTest)
         leftMaster->Set(pwr);
 }
+void Drivetrain::resetEncoders()
+    {
+    leftEncoder->Reset();
+    rightEncoder->Reset();
+    }
+
+void Drivetrain::resetPosition()
+    {
+    leftRef = leftMaster->GetEncoder().GetPosition(); // Turns out there is not set/reset.  We'll need to subtract this reference value.
+    rightRef = rightMaster->GetEncoder().GetPosition();
+    }
+
+void Drivetrain::setStart(double x, double y, double angle)
+    {
+    positionX = x;
+    positionY = y;
+    thetaHeading = angle * M_PI / 180; // convert start angle to radians.
+    prevEncLeft = leftEncoder->Get(); // Init left and right encoder previous positions to be ready
+    prevEncRight = rightEncoder->Get(); // to measure any differences.
+    }
+
 #pragma endregion
 
 #pragma region Motor Get Functions
 //------------------------------------------Get Functions------------------------------------------
 double Drivetrain::getLeftEncoder() {
-   return leftMaster->GetEncoder().GetPosition();
+   return  leftRef - leftMaster->GetEncoder().GetPosition(); // reverse to get + reading for forward.
 }
 
 double Drivetrain::getRightEncoder() {
-    return rightMaster->GetEncoder().GetPosition();
+    return rightMaster->GetEncoder().GetPosition() - rightRef;
 }
 
 //Returns RPM
@@ -529,4 +635,3 @@ double Drivetrain::readPDPCurrent(int channel){
 double Drivetrain::readTotalCurrent(){
     return pDP->GetTotalCurrent();
 }
-

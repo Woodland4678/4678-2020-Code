@@ -132,4 +132,13 @@ Drivetrain();
 	//PDP
 	double readPDPCurrent(int channel);
 	double readTotalCurrent();
+
+	void resetEncoders();
+	void resetPosition();
+	void setStart(double x, double y, double angle);
+	double rightRef,leftRef;
+	int prevEncRight,prevEncLeft;
+	double thetaHeading;
+	double positionX,positionY;
+
 };

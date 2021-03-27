@@ -23,7 +23,7 @@ private:
         {
         double startX;
         double startY;
-        double startAngle;
+        // double startAngle;
 
         double calculatedX; // Current X,Y and Angle as calculated by the path traversal
         double calculatedY;
@@ -55,6 +55,7 @@ private:
         double vel; // manage velocity as we accelerate and decelerate (each segment)
         double nextVel; // velocity of next traversal section.
         double heading; // track the direction of this segment as we crank out trajectory points.
+        double nextHeading;
         double arcPos; // track arc position 
         double pos; // tracks arc length position during traversal generation
         double nextPos; // next position value.
@@ -65,12 +66,15 @@ private:
         double last_integrand;
         double lastPosIncrement;
 
+        double currentX; // Used in circle trajectory generation.
+        double currentY;
+
         } pathData_t;
 
     typedef struct 
         {
         int segmentType; // 1=spline, 2=circle, 
-        int segementID;
+        int segmentID;
         double x; // This is ending x,y
         double y;
         double theta; // Angle in radians at ending position.
@@ -98,9 +102,17 @@ private:
         int prevSampleNum;
         double percentage;
         int goBackwards; // 0=forward, 1=backwards (velocity specified as negative)
+        int turnDirection; // 0 = turn left, 1=turn right
+        double thetaSpan; // the angle range we go through.
+        double endTheta; // heading angle when this segement finishes.
+		
+		double centerX; // co-ords of the center of the circle.
+		double centerY;
+		double startAngle; // These are start and end angles for the circle that match the circleAround and splineTo angles,
+		double endAngle; // not the theta angles which seem to be 180degrees off (due to using -X co-ords).  Next step for this code is to fix that ...
 
-        double currentX; // track current X and Y position info.
-        double currentY;
+//        double currentX; // track current X and Y position info.
+//        double currentY; // These never ended up getting used.
         } segmentData_t;
     
     segmentData_t segmentData[MAX_PATH_POINTS];
@@ -143,6 +155,7 @@ public:
     bool generateSpline2(int idx);
     double angleToTheta(double angle);
     bool generateCircle2(int idx);
+    int generateCircPath2(int idx);
     double spline_derivativeAt2(int idx, double percentage);
     int trajectorySpace();
     void setNextVel2(int idx);
