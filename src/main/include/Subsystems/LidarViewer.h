@@ -22,7 +22,7 @@ class LidarViewer {
   //void  setPoints(int numPoints, lidattp* lidarPts);
   //void  setLines(int numLines, tpLine * lines);
   void addPoint(double dist, double angle);
-  void addPointXY(int x, int y, bool spline);
+  void addPointXY(int x, int y, int spline);
   int m_numScoring = 0;
  private:
   LidarViewer();

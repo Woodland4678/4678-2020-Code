@@ -69,15 +69,16 @@ void AutoTrenchRun::Initialize() {
 
     //SKills Challenges Code
     //0.02,4,2,1,0.7112
-    path1 = new PathFinder(0.02,0,1.5,1.5,1,1,0.7112);  // cycle time (s), max velocity (m/s), max acceleration (m/s^2), max jerk (m/s^3), distance between wheels (m)
-    path1->createNewPath();
-    path1->addWayPoint(0, 0, 0,0.007);  // -X is in front of robot, +X is behind, +Y is left, -Y is right
-    path1->addWayPoint(-1.5, 0, 0,0.007); //2.35, 1.7, 0 - meters
-    path1->addWayPoint(-2.5, -1, 85,0.007);
-    //path1->addWayPoint(-2.3, 0.5, 90);
-    //path1->addWayPoint(-2, 0.5, 0);
-    //path1->addWayPoint(-2, 0.5, 0);
-    path1->makePath();
+    // path1 = new PathFinder(0.02,0,1.5,1.5,1,1,0.7112);  // cycle time (s), max velocity (m/s), max acceleration (m/s^2), max jerk (m/s^3), distance between wheels (m)
+    // path1->createNewPath();
+    // path1->addWayPoint(0, 0, 0,0.007);  // -X is in front of robot, +X is behind, +Y is left, -Y is right
+    // path1->addWayPoint(-1.5, 0, 0,0.007); //2.35, 1.7, 0 - meters
+    // path1->addWayPoint(-2.5, -1, 85,0.007);
+    // //path1->addWayPoint(-2.3, 0.5, 90);
+    // //path1->addWayPoint(-2, 0.5, 0);
+    // //path1->addWayPoint(-2, 0.5, 0);
+    // path1->makePath();
+
 
     cnt = 0;
     Robot::drivetrain->resetGyro();
@@ -86,74 +87,74 @@ void AutoTrenchRun::Initialize() {
 
 // Called repeatedly when this Command is scheduled to run
 void AutoTrenchRun::Execute() {
-    switch(autoStep) {
-        case autoAim:
-            //Robot::intakes->deployIntakes();
-            //Robot::shooter->SetShooterSpeed(3500);
+//     switch(autoStep) {
+//         case autoAim:
+//             //Robot::intakes->deployIntakes();
+//             //Robot::shooter->SetShooterSpeed(3500);
             
-            //Auto Aim
-//            if(Robot::drivetrain->AutoAim() < 0.5){
-//
-//            }
-            if (true) {
-                autoStep = shoot;
-                //path1->debug();
-            }
-        break;
-        case shoot:
-            //Shoot
-            //path1->debug();
-            path1->startTraverse(frc::Timer::GetFPGATimestamp());
-            autoStep = runFirstPath;
-        break;
-        case runFirstPath:
-            if (path1->traverse(frc::Timer::GetFPGATimestamp(),&rVel,&lVel,Robot::drivetrain->getGyroReading())) {   // cnt = how far down the path are you, right velocity (m/s), left velocity (m/s)
-                //if (Robot::intakes->countCells() == 5) {
-                    autoStep = finalShoot;
-               // }
-                rVel = 0;
-                lVel = 0;
-                cnt = 0;
-             }
-            // if (Robot::intakes->countCells() == 3) {
-            //     //Robot::intakes->setIntakeSpeed(0.9,0,0.7);
-            // }
-            // if (Robot::intakes->countCells() == 4) {
-            //     //Robot::intakes->setIntakeSpeed(0,0.8,0.7);
-            // }
-            Robot::drivetrain->setRightVelocity(rVel);
-            Robot::drivetrain->setLeftVelocity(lVel);
-            cnt++;
-        break;
-        case pause:
-            //Robot::intakes->spinMag();
-            cnt++;
-            if (cnt > 50) {
-                //autoStep = runSecondPath;
-                path2->startTraverse(frc::Timer::GetFPGATimestamp());
-                cnt = 0;
-            }
+//             //Auto Aim
+// //            if(Robot::drivetrain->AutoAim() < 0.5){
+// //
+// //            }
+//             if (true) {
+//                 autoStep = shoot;
+//                 //path1->debug();
+//             }
+//         break;
+//         case shoot:
+//             //Shoot
+//             //path1->debug();
+//             path1->startTraverse(frc::Timer::GetFPGATimestamp());
+//             autoStep = runFirstPath;
+//         break;
+//         case runFirstPath:
+//             if (path1->traverse(frc::Timer::GetFPGATimestamp(),&rVel,&lVel,Robot::drivetrain->getGyroReading())) {   // cnt = how far down the path are you, right velocity (m/s), left velocity (m/s)
+//                 //if (Robot::intakes->countCells() == 5) {
+//                     autoStep = finalShoot;
+//                // }
+//                 rVel = 0;
+//                 lVel = 0;
+//                 cnt = 0;
+//              }
+//             // if (Robot::intakes->countCells() == 3) {
+//             //     //Robot::intakes->setIntakeSpeed(0.9,0,0.7);
+//             // }
+//             // if (Robot::intakes->countCells() == 4) {
+//             //     //Robot::intakes->setIntakeSpeed(0,0.8,0.7);
+//             // }
+//             Robot::drivetrain->setRightVelocity(rVel);
+//             Robot::drivetrain->setLeftVelocity(lVel);
+//             cnt++;
+//         break;
+//         case pause:
+//             //Robot::intakes->spinMag();
+//             cnt++;
+//             if (cnt > 50) {
+//                 //autoStep = runSecondPath;
+//                 path2->startTraverse(frc::Timer::GetFPGATimestamp());
+//                 cnt = 0;
+//             }
             
-        break;
-        case runSecondPath:
-            if (path2->traverse(cnt,&rVel,&lVel,Robot::drivetrain->getGyroReading())) {
-                autoStep = pause;
-                rVel = 0;
-                lVel = 0;
-                cnt = 0;
-            }
+//         break;
+//         case runSecondPath:
+//             if (path2->traverse(cnt,&rVel,&lVel,Robot::drivetrain->getGyroReading())) {
+//                 autoStep = pause;
+//                 rVel = 0;
+//                 lVel = 0;
+//                 cnt = 0;
+//             }
 
-            Robot::drivetrain->setRightVelocity(rVel);
-            Robot::drivetrain->setLeftVelocity(lVel);
-            cnt++;
-        break;
-        case finalAutoAim:
-            //autoAim
-        break;
-        case finalShoot:
-            //shoot
-        break;
-    }
+//             Robot::drivetrain->setRightVelocity(rVel);
+//             Robot::drivetrain->setLeftVelocity(lVel);
+//             cnt++;
+//         break;
+//         case finalAutoAim:
+//             //autoAim
+//         break;
+//         case finalShoot:
+//             //shoot
+//         break;
+//     }
     
     //frc::SmartDashboard::PutNumber("AutoCount", cnt);
 }

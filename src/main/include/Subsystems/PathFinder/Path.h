@@ -12,128 +12,145 @@
 
 //#include "frc/WPILib.h"
 
-#define MAX_WAYPOINTS   14  //We don't like using malloc and other dynamic memory, this is the max 
-                            //array size for the number of waypoints you can have in a single path
-                            //Also the number of splines that can be used
+#define MAX_PATH_POINTS 32 // Define how many spline and circle segements we're allowed to string togehter.
 
+#define MAX_TRAJ_POINTS 16 // Only need 16 (or less) since we're generating them dynamically as fast as we need them.
 
 class PathFinder {
 private:
-    //Basic configuation for the path finder
-    typedef struct Configuration {
-        double cycleTime;   //Number of seconds between cycles, normally this is just 0.02 which is = to 50Hz
-		double StartPower;
-		double EndPower;
-        double MaxSpeed;    //The max speed of the robot
-        double MaxAccel;    //The max acceleration of the robot
-        double MaxDeaccel;
-        double MaxJerk;
-        double WheelBase;
-        double gryo_p;
-        double gryo_i;
-        //Could add unit type mm / m / in / feet etc...
-    }tpConfig;
-    double gyroIaccum = 0;
-    typedef struct WayPoint {
-        double x;
+    // pathData holds values related to the overall path algorithm
+    typedef struct 
+        {
+        double startX;
+        double startY;
+        double startAngle;
+
+        double calculatedX; // Current X,Y and Angle as calculated by the path traversal
+        double calculatedY;
+        double calculatedAngle;
+
+        double measuredX; // X,Y and Angle as measured (and tracked) based on encoder and gyro readings.
+        double measuredY;
+        double measuredAngle;
+
+//        int state; // main processPath state counter.
+
+        int pathPoints; // Number of splines in the current path.
+        int pointsGenerated; // increases to match pathPoints as data is generated for that path.
+        int activeIdx; // Index of spline or circle that we are generating traversal data for.
+        int trajPointIdx; // index to where next trajectory point will be placed in the trajPoints circular array
+        int trajPointToUse; // when running the trajectory, this is the trajectory point to use to set motor speeds.
+        // Note, when trajPointIdx == trajPointToUse then array is empty and there's room for 16 of them.
+        // trajPointidx is incremented when trajectory points are generated.  trajPointToUse is incremented as the points are
+        // used and the data is send to the motor controller.  When trajPointIdx == trajPointToUse - 1, cyclic array is full and we need to wait
+        // before adding more.
+        int runRobot; // 0=not running, just creating path for display on cameraview, 1=running the robot.
+        double acceleration;
+        double deceleration;
+        double distanceBetweenWheels;
+        double cycleTime; // will be 0.02 for now.
+        int havePrevTraj; // 0=no, 1=yes 
+        int startedTraverse; // 0=not started yet, 1=started.
+        double timeReference; // fpga timer reference.
+        double vel; // manage velocity as we accelerate and decelerate (each segment)
+        double nextVel; // velocity of next traversal section.
+        double heading; // track the direction of this segment as we crank out trajectory points.
+        double arcPos; // track arc position 
+        double pos; // tracks arc length position during traversal generation
+        double nextPos; // next position value.
+        double prevPos; // previous position value.
+        double arcLength;
+        double arcSegment;
+        double lastArcLength;
+        double last_integrand;
+        double lastPosIncrement;
+
+        } pathData_t;
+
+    typedef struct 
+        {
+        int segmentType; // 1=spline, 2=circle, 
+        int segementID;
+        double x; // This is ending x,y
         double y;
-        double theta;
-		double gyro_p;
-    }tpWay;
-
-    typedef struct SplineObject {
-        int s_way;
-        int e_way;
-
-        double x_offset;
-        double y_offset;
-
-        double distance;
+        double theta; // Angle in radians at ending position.
+        double targetVelocity;
+        double finalVelocity;
+        int useActual;   
         double theta_offset;
-		double gyro_p;
-
-        double theta_S_hat;
-        double theta_E_hat;
-
+        double startX; // starting point gets added in here when spline or circle is first generated.
+        double startY;
+        double startTheta; // Angle at starting point.
+        double linearDistance; // Straight Line distance start to end point.
+        double theta_S_hat; // angle values for calculations.
+        double theta_E_hat; // angle values for calculations.
         double m_S_Hat;
         double m_E_Hat;
-
         double a;
         double b;
         double c;
         double d;
         double e;
+        int done; // gets set to 1 when we've generated all the traversal data for this one.
+        int sampleCount; // counts from 0 to numberOfSamples
+        int numberOfSamples; // we're done when sampleCount >= numberOfSamples
+        int sampleNum;
+        int prevSampleNum;
+        double percentage;
+        int goBackwards; // 0=forward, 1=backwards (velocity specified as negative)
 
-        double arcLength;
-    }tpSpline;
+        double currentX; // track current X and Y position info.
+        double currentY;
+        } segmentData_t;
+    
+    segmentData_t segmentData[MAX_PATH_POINTS];
 
-    typedef struct TrajectorySegment{
+    typedef struct 
+        {
         double pos;
         double vel;
         double acc;
-        double jerk; 
         double heading;
-        double dt;
         double x;
         double y;
 
         double velR;
         double velL;
-		double gyro_p;
-    }tpSeg;
+        double curRX;
+        double curRY;
+        double curLX;
+        double curLY;
+        double posL;
+        double posR;
+        double accL;
+        double accR;
+        }trajPoint_t;
 
-    typedef struct TrajectorObject {
-        tpSeg segments[2000];
-        int seg_cnt;
-    }tpTrajectory;
-
-    tpConfig m_Config;
-
-    tpWay m_WayPoints[MAX_WAYPOINTS];
-    int m_WayPoint_Cnt = 0;
-
-    tpSpline m_Splines[MAX_WAYPOINTS - 1];
-    int m_Spline_Cnt = 0;
-
-    tpTrajectory m_Traj;
-    tpTrajectory m_L_Traj;
-    tpTrajectory m_R_Traj;
-    int m_segmentCount = 0;
-
-    double total_dist = 0;
-	double startTime = 0;
-	double changeInTime = 0;
-    int m_traverseCount = 0;
-
-    bool generateSpline(int idx, int way1, int way2);
-
+    trajPoint_t trajPoints[MAX_TRAJ_POINTS];
 
 public:
-    PathFinder(double cycleTime, double startPower, double endPower, double maxSpeed, double maxAccel, double maxJerk, double wheelBase);
+    int m_WayPoint_Cnt = 0;
 
-    bool createNewPath(); //Resets the counts
-    bool addWayPoint(double x, double y, double theta, double gyro_p);
-    
-    bool makePath();
-    void debug();
+    pathData_t pathData;
 
-    double spline_CalculateLength(int idx, int samples);
-    double spline_derivativeAt(int idx, double percentage);
-    double spline_SecondDerivativeAt(int idx, double percentage);
-    double spline_getPercentageForDistance(int idx, double distance, int samples);
-    bool spline_getXY(int idx, double percentage, double *outX, double *outY);
-    double spline_ValueAt(int idx, double percentage);
-    double angleAt(int idx, double percentage);
-
-    bool tra_FormTrajectory(double startPower, int wayStart, double endPower, int wayEnd);
-    void copySegment(int idx);
-
-    bool traverse(double time, double *rightOut, double *leftOut, double gyroReading);
-    bool inverse_traverse(double time, double *rightOut, double *leftOut, double gyroReading);
-	void startTraverse(double time);
-
-
+    PathFinder(double acceleration, double deceleration, double distanceBetweenWheels,int runRobot);
     double angleDiffRadians(double from, double to);
+    int generatePath2(int idx);
+    int processPath(void);
+    void setStartPoint(double x, double y, double angle);
+    int splineTo(int segmentID, double x, double y, double angle, double targetVelocity, double finalVelocity, int useActual, int samples);
+    int circleAround(int segmentID, double x, double y, double angle, double targetVelocity, double finalVelocity, int useActual, int samples);
+    bool generateSpline2(int idx);
+    double angleToTheta(double angle);
+    bool generateCircle2(int idx);
+    double spline_derivativeAt2(int idx, double percentage);
+    int trajectorySpace();
+    void setNextVel2(int idx);
+    bool spline_getXY2(int idx, double percentage, double *outX, double *outY);
+
+    double gyroReading = 0;
+    double degree = 0;
+
 };
 
 #endif //PATHFINDER_H

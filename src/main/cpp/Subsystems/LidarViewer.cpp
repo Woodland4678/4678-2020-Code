@@ -21,8 +21,8 @@
 
 static const bool ENABLE_LIDAR_VIEWER = true;
 static const double LIDAR_ZOOM = 0.075;
-static const int LIDAR_CAMERA_WIDTH = 480;
-static const int LIDAR_CAMERA_HEIGHT = 480;
+static const int LIDAR_CAMERA_WIDTH = 800; // 480; // 800 x 480 works!
+static const int LIDAR_CAMERA_HEIGHT = 480 ; // 480;
 
 
 
@@ -58,6 +58,7 @@ void LidarViewer::CameraStreamThread() {
   static const cv::Scalar blue(255, 100, 100);
   static const cv::Scalar green(50, 255, 50);
   static const cv::Scalar white(255, 255, 255);
+  static const cv::Scalar orange(128, 128, 255);
   static const cv::Size size(cameraWidth, cameraHeight);
   static const int centerX = cameraWidth >> 1;
   static const int centerY = cameraHeight;
@@ -75,11 +76,12 @@ void LidarViewer::CameraStreamThread() {
   //m_numLidarPts = 0;
   m_numCartPts = 0;
   //m_numLines  = 0;
-  m_numScoring = 0;
+  // m_numScoring = 0;
+
+
 
   while (shouldRun) {
     //  Reset the class variables needed for displaying game objects
-
 
     const double now = frc::Timer::GetFPGATimestamp();
 
@@ -100,28 +102,46 @@ void LidarViewer::CameraStreamThread() {
 
     if (createBaseFrame) {
       baseFrame = cv::Mat::zeros(size, type);
-      cv::circle(baseFrame, cv::Point(centerX, centerY), 6, red, 1);
-      cv::putText(baseFrame, "LIDAR", cv::Point(10, 15),
+      // cv::circle(baseFrame, cv::Point(centerX, centerY), 6, red, 1);
+      cv::putText(baseFrame, "Field", cv::Point(10, 15),
                   cv::HersheyFonts::FONT_HERSHEY_SIMPLEX, 0.5, white, 1);
 
-      const int radii[] = {500, 1000, 2000, 3000, 4000, 5000, 6000};
-      for (int i = 0; i < (int)(sizeof(radii) / sizeof(int)); ++i) {
-        const int radius = radii[i] * zoom;
-        cv::circle(baseFrame, cv::Point(centerX, centerY), radius, blue, 1);
-      }
+//      const int radii[] = {500, 1000, 2000, 3000, 4000, 5000, 6000};
+//      for (int i = 0; i < (int)(sizeof(radii) / sizeof(int)); ++i) {
+//        const int radius = radii[i] * zoom;
+//        cv::circle(baseFrame, cv::Point(centerX, centerY), radius, blue, 1);
+      // zoom does get set to 0.075 at some point.  6000 * 0.075 = 450 so we're really dealing with
+      // a camera feed of 480 x 480. Can we change it to be a bit more "field friendly"
+      // say 800 x 400?  The 2.5ft dots on 30 ft -> 11 in the X (800/12 = 66.67), 6 in the y 
+      // Draw the challenge field points
+      int skip;
+      for (int xd = 66;xd < 775;xd+=66) // Draw all the locations where cones might go.
+        {
+        for (int yd = 80;yd < 475;yd+=80)
+          {
+          skip = 0; // Don't skip by default.  On line 1 and 5, skip position 2, 5 and 11
+          if (((yd == 80)||(yd == 80 * 5))&&((xd == 66*2)||(xd == 66 * 5)||(xd == 66 * 11)))
+            skip = 1;
+          if ((yd == 80 * 3)&&((xd != 66 * 3)&&(xd != 66 * 9))) // only include C3, C9 in center line.
+            skip  = 1;
+          if (!skip)
+            cv::circle(baseFrame, cv::Point(xd, yd), 3, orange, 1);
+          }
+        }
       createBaseFrame = false;
     }
 
     if (0) {
       // Don't want this thread taking over everything.
-      const static double minWait = 0.1;  // about 5 fps?
+      const static double minWait = 0.2;  // about 5 fps?
       const double elapsed = now - lastFrameTime;
       const double waitTime = elapsed < minWait ? minWait - elapsed : 0.01;
       frc::Wait(waitTime);
       lastFrameTime = now;
     } else {
       // The main thread is only going to update at most every 20ms.
-      frc::Wait(0.1);
+      frc::Wait(0.2); // Trying for 5 fps.  We were getting 8 or 9.
+//      printf("\nLidarViewer is running");
     }
     cv::Mat frame = baseFrame.clone();
 
@@ -179,15 +199,25 @@ void LidarViewer::CameraStreamThread() {
       // Log("Line from %d, %d - %d, %d", x1, y1, x2, y2);
     }
     */
+    int numPlotted = 0;
     for (int i = 0; i < m_numScoring; i++) {
-      const int x = centerX + m_scoring[i].x * zoom - 1;
-      const int y = centerY + (m_scoring[i].y) * zoom - 1;
-      if (x <= cameraWidth && x >= 0 && y <= cameraHeight && y >= 0) {
-        if(m_scoring[i].tstamp == 0)
-          cv::rectangle(frame, cv::Rect(x, y, 3, 3), green, 1);
-        else
-          cv::rectangle(frame, cv::Rect(x, y, 5, 5), blue, 1);
+      const int x = m_scoring[i].x-1; //  * zoom - 1;
+      const int y = m_scoring[i].y-1; // ) * zoom - 1;
+      if ((x <= cameraWidth) && (x >= 0) && (y <= cameraHeight) && (y >= 0)) { 
+          if (m_scoring[i].tstamp == 1)
+            cv::rectangle(frame, cv::Rect(x, y, 2, 2), green, 1);
+          else
+            cv::rectangle(frame, cv::Rect(x, y, 4, 4), red, 2);
+//        else
+//          cv::rectangle(frame, cv::Rect(x, y, 5, 5), blue, 1);
+        numPlotted++;
       }
+    else
+    {
+        // printf("\nSkipped (%d,%d)",x,y);
+    }
+    
+//    printf("\nm_numScoring=%d, plotted=%d",m_numScoring,numPlotted);
     }
 
     cameraStream.PutFrame(frame);
@@ -236,15 +266,15 @@ void  LidarViewer::addPoint(double dist, double angle){
   m_numScoring++;
 }
 
-void LidarViewer::addPointXY(int x, int y, bool spline) {
-  if (m_numScoring >= 1024)
-    m_numScoring = 0;
- 
-	m_scoring[m_numScoring].x = y;
-	m_scoring[m_numScoring].y = -x;
-  m_scoring[m_numScoring].tstamp = (int)spline;
+void LidarViewer::addPointXY(int x, int y, int spline) {
+  if (m_numScoring < 1024)
+    {
+    m_scoring[m_numScoring].x = x;
+    m_scoring[m_numScoring].y = LIDAR_CAMERA_HEIGHT - y;
+    m_scoring[m_numScoring].tstamp = spline;
 
-  m_numScoring++;
+    m_numScoring++;
+    }
 }
 
 void  LidarViewer::convertToXY()
